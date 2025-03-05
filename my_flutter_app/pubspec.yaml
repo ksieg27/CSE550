@@ -30,6 +30,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  medication_management_module:
+    path: ../medication_management_module # Adjust path if it's inside your project
+  http: ^1.1.0 
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

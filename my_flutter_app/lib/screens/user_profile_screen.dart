@@ -9,15 +9,9 @@ class UserProfileScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            TextFormField(
-              decoration: InputDecoration(labelText: 'First Name'),
-            ),
-            TextFormField(
-              decoration: InputDecoration(labelText: 'Last Name'),
-            ),
-            TextFormField(
-              decoration: InputDecoration(labelText: 'Doctor'),
-            ),
+            TextFormField(decoration: InputDecoration(labelText: 'First Name')),
+            TextFormField(decoration: InputDecoration(labelText: 'Last Name')),
+            TextFormField(decoration: InputDecoration(labelText: 'Doctor')),
             SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {

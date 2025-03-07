@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'search_medication.dart'; // Import local search widget
-// import 'schedule_medication.dart'; // Import local schedule widget
+import 'schedule_medication.dart'; // Import local schedule widget
 
 // Define a library of colors for easy reference
 class AppColors {
@@ -29,13 +29,16 @@ class MedicationModuleWidget extends StatefulWidget {
 // LEARN: State is separated from widget for cleaner architecture
 class _MedicationModuleWidgetState extends State<MedicationModuleWidget> {
   // List to store selected medications
-  List<String> medications = [];
+  List<MyMedication> medications = [];
   // Text controller for direct input
   final TextEditingController _medicationController = TextEditingController();
 
   // State to track if search panel is visible
   bool _showSearchPanel = false;
   bool _showSchedulePanel = false;
+
+  //Variable to store selected medication and pass to scheduling
+  Map<dynamic, dynamic>? _selectedMedication;
 
   // Release resources when widget is removed
   @override
@@ -52,16 +55,30 @@ class _MedicationModuleWidgetState extends State<MedicationModuleWidget> {
 
   // Add medication to the list if it's not empty
   // LEARN: State updates should be wrapped in setState() to trigger rebuilds
-  void addMedication(Map<dynamic, dynamic> medication) {
-    if (medication.isNotEmpty) {
+  void addMedication(MyMedication medication) {
+    if (medication.brandName.isNotEmpty & medication.genericName.isNotEmpty) {
       setState(() {
-        medications.add(
-          "${medication['brand_name']} \n(${medication['generic_name']})",
-        );
+        medications.add(medication);
         _updateMedicationCount();
         _medicationController.clear();
         // Hide search panel after adding medication
         _showSearchPanel = false;
+      });
+    }
+  }
+
+  void passMedication(Map<dynamic, dynamic> newMedication) {
+    if (newMedication.isNotEmpty) {
+      setState(() {
+        _selectedMedication = newMedication;
+
+        _showSearchPanel = false;
+
+        Future.microtask(() {
+          setState(() {
+            _showSchedulePanel = true;
+          });
+        });
       });
     }
   }
@@ -73,10 +90,16 @@ class _MedicationModuleWidgetState extends State<MedicationModuleWidget> {
     });
   }
 
+  // Open the search panel and pass the selected medication
   void _toggleSchedulePanel() {
     setState(() {
       _showSchedulePanel = !_showSchedulePanel;
     });
+  }
+
+  // Format date to a human-readable string
+  String _formatDate(DateTime date) {
+    return "${date.month}/${date.day}/${date.year}";
   }
 
   @override
@@ -131,33 +154,70 @@ class _MedicationModuleWidgetState extends State<MedicationModuleWidget> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           ...medications.map(
-                            (medication) => Padding(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 4.0,
-                              ),
-
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.medication,
-                                    color: AppColors.urgentOrange,
+                            (medication) => Container(
+                              margin: EdgeInsets.only(bottom: 8.0),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8.0),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black12,
+                                    blurRadius: 3,
+                                    offset: Offset(0, 1),
                                   ),
-                                  SizedBox(width: 8),
-                                  Expanded(child: Text(medication)),
                                 ],
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(12.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.medication,
+                                          color: AppColors.urgentOrange,
+                                        ),
+                                        SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            medication.brandName,
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(height: 6),
+                                    Text(
+                                      "Generic: ${medication.genericName}",
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[700],
+                                      ),
+                                    ),
+                                    SizedBox(height: 4),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "Quantity: ${medication.quantity}",
+                                          style: TextStyle(fontSize: 13),
+                                        ),
+                                        Text(
+                                          "Start: ${_formatDate(DateTime.fromMillisecondsSinceEpoch(medication.startDate))}",
+                                          style: TextStyle(fontSize: 13),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                          if (medications.isEmpty)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 8.0,
-                              ),
-                              child: Text(
-                                'No medications added yet',
-                                style: TextStyle(fontStyle: FontStyle.italic),
-                              ),
-                            ),
                         ],
                       ),
                     ),
@@ -171,8 +231,8 @@ class _MedicationModuleWidgetState extends State<MedicationModuleWidget> {
                           icon: Icon(Icons.add),
                           label: Text('Add Medication'),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.getItGreen,
                             foregroundColor: Colors.white,
+                            backgroundColor: AppColors.getItGreen,
                             padding: EdgeInsets.symmetric(vertical: 12.0),
                           ),
                         ),
@@ -201,10 +261,7 @@ class _MedicationModuleWidgetState extends State<MedicationModuleWidget> {
                             borderRadius: BorderRadius.circular(9.0),
                             child: MedicationSearchWidget(
                               onMedicationSelected: (selectedMedication) {
-                                _toggleSchedulePanel();
-                                if (_showSchedulePanel) {
-                                  addMedication(selectedMedication);
-                                }
+                                passMedication(selectedMedication);
                               },
                             ),
                           ),
@@ -222,7 +279,7 @@ class _MedicationModuleWidgetState extends State<MedicationModuleWidget> {
                               icon: Icon(
                                 Icons.close,
                                 color: AppColors.urgentOrange,
-                                size: 28.0,
+                                size: 20.0,
                               ),
                               onPressed: _toggleSearchPanel,
                               tooltip: 'Close search',
@@ -234,14 +291,10 @@ class _MedicationModuleWidgetState extends State<MedicationModuleWidget> {
                   ),
                 ),
 
-                // SCHEDUlE MEDICATION Animated panel
-                AnimatedPositioned(
-                  duration: Duration(milliseconds: 300), // Animation duration
-                  curve: Curves.easeInOut, // Animation curve
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  top: _showSchedulePanel ? 0 : 500, // Slide from bottom
+                // SCHEDUlE MEDICATION VISIBILTY
+                Visibility(
+                  visible: _showSchedulePanel,
+                  maintainState: true,
                   child: Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -249,23 +302,22 @@ class _MedicationModuleWidgetState extends State<MedicationModuleWidget> {
                     ),
                     child: Stack(
                       children: [
-                        // Close Button
-                        Positioned(
-                          top: 10,
-                          right: 10,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: AppColors.deepBlues,
-                              shape: BoxShape.circle,
-                            ),
-                            child: IconButton(
-                              icon: Icon(
-                                Icons.close,
-                                color: AppColors.urgentOrange,
-                                size: 28.0,
-                              ),
-                              onPressed: _toggleSchedulePanel,
-                              tooltip: 'Close schedule',
+                        // Schedule Widget
+                        Positioned.fill(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(9.0),
+                            child: MedicationScheduleWidget(
+                              key: ValueKey(_selectedMedication),
+                              newMedication:
+                                  _selectedMedication, // Pass the selected medication
+                              onMedicationScheduleConfirmed: (
+                                scheduledMedication,
+                              ) {
+                                addMedication(scheduledMedication);
+                                _toggleSchedulePanel();
+                                _updateMedicationCount();
+                              },
+                              onClose: _toggleSchedulePanel,
                             ),
                           ),
                         ),

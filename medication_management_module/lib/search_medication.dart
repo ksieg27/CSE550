@@ -172,12 +172,15 @@ class _MedicationSearchWidgetState extends State<MedicationSearchWidget> {
               child: ListView.builder(
                 itemCount: _searchResults.length,
                 itemBuilder: (context, index) {
-                  final medication = _searchResults[index];
+                  final medicationResults = _searchResults[index];
                   // Extract data with null safety using ?. operator
                   final brandName =
-                      medication['openfda']?['brand_name']?[0] ?? 'Unknown';
+                      medicationResults['openfda']?['brand_name']?[0] ??
+                      'Unknown';
+
                   final genericName =
-                      medication['openfda']?['generic_name']?[0] ?? 'Unknown';
+                      medicationResults['openfda']?['generic_name']?[0] ??
+                      'Unknown';
 
                   return ListTile(
                     title: Text(brandName),

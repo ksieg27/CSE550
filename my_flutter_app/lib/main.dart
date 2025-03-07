@@ -1,5 +1,6 @@
 import 'package:medication_management_module/medication_management_module.dart'; // Import the module
 import 'package:flutter/material.dart';
+import 'package:my_flutter_app/screens/user_profile_screen.dart';
 
 // Define a library of colors for easy reference
 class AppColors {
@@ -93,8 +94,41 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
             const SizedBox(height: 20), // Optional top padding
-            Text(
-              "Hi John, You have $_totalMedications medication(s) scheduled today",
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      "Hi, John, you have $_totalMedications medication(s) scheduled today",
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => UserProfileScreen(),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(8.0),
+                      decoration: BoxDecoration(
+                        color: AppColors.deepBlues,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.person,
+                        color: Colors.white,
+                        size: 24.0,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 20),
 

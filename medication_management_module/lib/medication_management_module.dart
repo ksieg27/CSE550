@@ -286,99 +286,122 @@ class _MedicationModuleWidgetState extends State<MedicationModuleWidget> {
                       ),
 
                       // Medication List
-                      Container(
-                        height: screenHeight * 0.47,
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            ...medications.map(
-                              (medication) => Container(
-                                margin: EdgeInsets.only(bottom: 8.0),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(8.0),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black12,
-                                      blurRadius: 3,
-                                      offset: Offset(0, 1),
+                      Expanded(
+                        child:
+                            medications.isEmpty
+                                ? Center(
+                                  child: Text(
+                                    "No medications added yet",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontStyle: FontStyle.italic,
+                                      color: Colors.grey[600],
                                     ),
-                                  ],
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      // Medication details
-                                      Row(
-                                        children: [
-                                          Icon(
-                                            Icons.medication,
-                                            color: AppColors.urgentOrange,
+                                  ),
+                                )
+                                : ListView.builder(
+                                  itemCount: medications.length,
+                                  padding: const EdgeInsets.all(8.0),
+                                  itemBuilder: (context, index) {
+                                    final medication =
+                                        medications[index]; // Get the current medication
+                                    return Container(
+                                      margin: EdgeInsets.only(bottom: 8.0),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(
+                                          8.0,
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black12,
+                                            blurRadius: 3,
+                                            offset: Offset(0, 1),
                                           ),
-                                          SizedBox(width: 8),
-                                          Expanded(
-                                            child: Text(
-                                              medication.brandName,
+                                        ],
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(12.0),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            // Medication details
+                                            Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.medication,
+                                                  color: AppColors.urgentOrange,
+                                                ),
+                                                SizedBox(width: 8),
+                                                Expanded(
+                                                  child: Text(
+                                                    medication.brandName,
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 16,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            SizedBox(height: 6),
+                                            Text(
+                                              "Generic: ${medication.genericName}",
                                               style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16,
+                                                fontSize: 14,
+                                                color: Colors.grey[700],
                                               ),
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(height: 6),
-                                      Text(
-                                        "Generic: ${medication.genericName}",
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.grey[700],
+                                            SizedBox(height: 4),
+
+                                            // Medication schedule
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                if (medication.frequencyTaken ==
+                                                    "By Day")
+                                                  Text(
+                                                    "Take ${medication.numberOfDoses} dose(s) once daily.",
+                                                    style: TextStyle(
+                                                      fontSize: 13,
+                                                    ),
+                                                  ),
+                                                if (medication.frequencyTaken ==
+                                                    "By Hour")
+                                                  Text(
+                                                    "Take ${medication.numberOfDoses} doses, ${medication.numberOfDosesPerDay} times per day.",
+                                                    style: TextStyle(
+                                                      fontSize: 13,
+                                                    ),
+                                                  ),
+                                                if (medication.frequencyTaken ==
+                                                    "As needed")
+                                                  Text(
+                                                    "Take as needed.",
+                                                    style: TextStyle(
+                                                      fontSize: 13,
+                                                    ),
+                                                  ),
+                                                if (medication.frequencyTaken !=
+                                                    "As needed")
+                                                  Text(
+                                                    "Next Dose: ${_formatTime(medication.time)}",
+                                                    style: TextStyle(
+                                                      fontSize: 13,
+                                                    ),
+                                                  ),
+                                              ],
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                      SizedBox(height: 4),
-
-                                      // Medication schedule
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          if (medication.frequencyTaken ==
-                                              "By Day")
-                                            Text(
-                                              "Take ${medication.numberOfDoses} dose(s) once daily.",
-                                              style: TextStyle(fontSize: 13),
-                                            ),
-                                          if (medication.frequencyTaken ==
-                                              "By Hour")
-                                            Text(
-                                              "Take ${medication.numberOfDoses} doses, ${medication.numberOfDosesPerDay} times per day.",
-                                              style: TextStyle(fontSize: 13),
-                                            ),
-                                          if (medication.frequencyTaken ==
-                                              "As needed")
-                                            Text(
-                                              "Take as needed.",
-                                              style: TextStyle(fontSize: 13),
-                                            ),
-                                          if (medication.frequencyTaken !=
-                                              "As needed")
-                                            Text(
-                                              "Next Dose: ${_formatTime(medication.time)}",
-                                              style: TextStyle(fontSize: 13),
-                                            ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
+                                    );
+                                  },
                                 ),
-                              ),
-                            ),
-                          ],
-                        ),
                       ),
 
                       // Add Button (only visible when search panel is hidden)

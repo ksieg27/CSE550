@@ -1,13 +1,5 @@
 import 'package:flutter/material.dart';
-
-class AppColors {
-  static const Color offBlue = Color(0xFFE0F7FA);
-  static const Color deepBlues = Color(0xFF2C3E50);
-  static const Color getItGreen = Color(0xFF76C7C0);
-  static const Color urgentOrange = Color(0xFFF4A261);
-  static const Color white = Color(0xFFFFFFFF);
-  // Add more colors as needed
-}
+import 'package:medication_management_module/medication_management_module.dart';
 
 class MyMedication {
   final String profile;
@@ -17,6 +9,17 @@ class MyMedication {
   final int startDate;
   final String? refillDate;
   final int time;
+  final String dosage;
+  final int? numberOfDoses;
+
+  // Frequency
+  final String? frequencyTaken;
+
+  // Daily Frequency
+  final int? numberOfDosesPerDay;
+
+  // Hourly Frequency
+  final int? hourlyFrequency;
 
   MyMedication({
     required this.profile,
@@ -26,6 +29,13 @@ class MyMedication {
     required this.startDate,
     this.refillDate,
     required this.time,
+    required this.dosage,
+
+    this.numberOfDosesPerDay,
+    this.frequencyTaken,
+
+    this.hourlyFrequency,
+    this.numberOfDoses,
   });
 }
 
@@ -53,6 +63,13 @@ class MedicationScheduleWidgetState extends State<MedicationScheduleWidget> {
   DateTime? _selectedRefillDate;
   late TimeOfDay _selectedTime;
   late TextEditingController _profileController;
+  late TextEditingController _dosageController;
+  late TextEditingController _numberOfDosesController;
+
+  // Frequency
+  late TextEditingController _numberOfDosesPerDayController;
+  late TextEditingController _frequencyTakenController;
+  late TextEditingController _hourlyFrequencyController;
 
   MyMedication? currentMedication;
 
@@ -62,8 +79,19 @@ class MedicationScheduleWidgetState extends State<MedicationScheduleWidget> {
     // Initialize controllers with default values
     _selectedStartDate = DateTime.now();
     _selectedTime = TimeOfDay.now();
-    _quantityController = TextEditingController(text: "1");
+    _quantityController = TextEditingController(text: "");
+    _quantityController.addListener(_recalculateRefillDate);
     _profileController = TextEditingController(text: "Default Profile");
+    _dosageController = TextEditingController(text: "");
+    _numberOfDosesController = TextEditingController(text: "");
+    _numberOfDosesController.addListener(_recalculateRefillDate);
+
+    // Frequency
+    _numberOfDosesPerDayController = TextEditingController(text: "");
+    _numberOfDosesPerDayController.addListener(_recalculateRefillDate);
+
+    _frequencyTakenController = TextEditingController(text: "By Day");
+    _hourlyFrequencyController = TextEditingController(text: "");
 
     if (widget.newMedication != null) {
       // Just extract medication names - we'll build the full MyMedication on submit
@@ -75,18 +103,57 @@ class MedicationScheduleWidgetState extends State<MedicationScheduleWidget> {
         startDate: _selectedStartDate.millisecondsSinceEpoch,
         refillDate: _selectedRefillDate?.toString(),
         time: _selectedTime.hour,
+        dosage: _dosageController.text,
+        numberOfDoses: int.tryParse(_numberOfDosesController.text),
       );
     }
   }
 
   @override
   void dispose() {
+    _quantityController.removeListener(_recalculateRefillDate);
+    _numberOfDosesController.removeListener(_recalculateRefillDate);
+    _numberOfDosesPerDayController.removeListener(_recalculateRefillDate);
+
     _quantityController.dispose();
     _profileController.dispose();
+    _dosageController.dispose();
+    _numberOfDosesController.dispose();
+    _numberOfDosesPerDayController.dispose();
+    _frequencyTakenController.dispose();
+    _hourlyFrequencyController.dispose();
+
     super.dispose();
   }
 
   // Date picker methods
+  // Modify _selectStartDate method
+
+  // Create updated medication with all form values
+  void confirmMedicationSchedule() {
+    if (widget.newMedication != null &&
+        widget.onMedicationScheduleConfirmed != null) {
+      // Create a fully populated MyMedication object
+      final medication = MyMedication(
+        profile: _profileController.text,
+        brandName: widget.newMedication!['brand_name'] ?? 'Unknown Brand',
+        genericName: widget.newMedication!['generic_name'] ?? 'Unknown Generic',
+        quantity: int.tryParse(_quantityController.text) ?? 1,
+        startDate: _selectedStartDate.millisecondsSinceEpoch,
+        refillDate: _selectedRefillDate?.toString(),
+        time: _selectedTime.hour * 60 + (_selectedTime.minute),
+        dosage: _dosageController.text,
+        numberOfDoses: int.tryParse(_numberOfDosesController.text),
+        frequencyTaken: _frequencyTakenController.text,
+        // Frequency
+        numberOfDosesPerDay: int.tryParse(_numberOfDosesPerDayController.text),
+        hourlyFrequency: int.tryParse(_hourlyFrequencyController.text),
+      );
+
+      widget.onMedicationScheduleConfirmed!(medication);
+    }
+  }
+
   Future<void> _selectStartDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -97,6 +164,7 @@ class MedicationScheduleWidgetState extends State<MedicationScheduleWidget> {
     if (picked != null && picked != _selectedStartDate) {
       setState(() {
         _selectedStartDate = picked;
+        _recalculateRefillDate(); // Add this line
       });
     }
   }
@@ -133,76 +201,63 @@ class MedicationScheduleWidgetState extends State<MedicationScheduleWidget> {
     return "${date.month}/${date.day}/${date.year}";
   }
 
-  // Create updated medication with all form values
-  void confirmMedicationSchedule() {
-    if (widget.newMedication != null &&
-        widget.onMedicationScheduleConfirmed != null) {
-      // Create a fully populated MyMedication object
-      final medication = MyMedication(
-        profile: _profileController.text,
-        brandName: widget.newMedication!['brand_name'] ?? 'Unknown Brand',
-        genericName: widget.newMedication!['generic_name'] ?? 'Unknown Generic',
-        quantity: int.tryParse(_quantityController.text) ?? 1,
-        startDate: _selectedStartDate.millisecondsSinceEpoch,
-        refillDate: _selectedRefillDate?.toString(),
-        time:
-            _selectedTime.hour * 60 +
-            (_selectedTime.minute), // Store as minutes since midnight
-      );
+  void _recalculateRefillDate() {
+    // Get the quantity as int, default to 1 if parsing fails
+    final quantity = int.tryParse(_quantityController.text) ?? 1;
 
-      widget.onMedicationScheduleConfirmed!(medication);
+    // Only calculate if not "As needed"
+    if (_frequencyTakenController.text == "As needed") {
+      setState(() {
+        _selectedRefillDate =
+            null; // No refill date for "as needed" medications
+      });
+      return;
     }
+
+    // Calculate based on frequency and quantity
+    DateTime calculatedDate;
+    switch (_frequencyTakenController.text) {
+      case "By Day":
+        final dosesPerDay = int.tryParse(_numberOfDosesController.text) ?? 1;
+        final days = (quantity / dosesPerDay).ceil();
+        calculatedDate = _selectedStartDate.add(Duration(days: days));
+        break;
+
+      case "By Hour":
+        // For hourly frequency, use the hourly-specific fields
+        final dosesPerDay =
+            int.tryParse(_numberOfDosesPerDayController.text) ?? 1;
+        final amountPerDose = int.tryParse(_numberOfDosesController.text) ?? 1;
+
+        // Total doses consumed per day
+        final totalDailyDoses = dosesPerDay * amountPerDose;
+
+        // Days until refill needed (round up to ensure medication doesn't run out)
+        final days = (quantity / totalDailyDoses).ceil();
+        calculatedDate = _selectedStartDate.add(Duration(days: days));
+        break;
+
+      default:
+        calculatedDate = _selectedStartDate.add(Duration(days: quantity));
+    }
+
+    setState(() {
+      _selectedRefillDate = calculatedDate;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(0),
+    return SafeArea(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Header
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(vertical: 12.0),
-            decoration: BoxDecoration(
-              color: AppColors.deepBlues,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(9.0),
-                topRight: Radius.circular(9.0),
-              ),
-            ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Text(
-                  "Schedule Medication",
-                  style: Theme.of(
-                    context,
-                  ).textTheme.headlineSmall?.copyWith(color: AppColors.white),
-                  textAlign: TextAlign.center,
-                ),
-                Positioned(
-                  right: 30,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      shape: BoxShape.circle,
-                    ),
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.close,
-                        color: AppColors.urgentOrange,
-                        size: 20.0,
-                      ),
-                      onPressed: widget.onClose,
-                      tooltip: 'Close Medication Schedule',
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          MyAppHeader(
+            title: 'Schedule Medications',
+            actionIcon: Icons.close,
+            onActionPressed: widget.onClose,
+            actionTooltip: 'Edit Medication List',
           ),
-
           // Scrollable content
           Expanded(
             child: SingleChildScrollView(
@@ -252,7 +307,7 @@ class MedicationScheduleWidgetState extends State<MedicationScheduleWidget> {
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Text(
                             "Scheduling Information",
@@ -263,6 +318,7 @@ class MedicationScheduleWidgetState extends State<MedicationScheduleWidget> {
                           ),
                           SizedBox(height: 16),
 
+                          // Profile Name
                           TextField(
                             controller: _profileController,
                             decoration: InputDecoration(
@@ -273,6 +329,7 @@ class MedicationScheduleWidgetState extends State<MedicationScheduleWidget> {
                           ),
                           SizedBox(height: 16),
 
+                          //Quantity
                           TextField(
                             controller: _quantityController,
                             decoration: InputDecoration(
@@ -284,6 +341,158 @@ class MedicationScheduleWidgetState extends State<MedicationScheduleWidget> {
                           ),
                           SizedBox(height: 16),
 
+                          //Dosage
+                          TextField(
+                            controller: _dosageController,
+                            decoration: InputDecoration(
+                              labelText: "Dosage",
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.numbers),
+                            ),
+                            keyboardType: TextInputType.number,
+                          ),
+                          SizedBox(height: 16),
+
+                          //Frequency
+                          InputDecorator(
+                            decoration: InputDecoration(
+                              labelText: "Frequency",
+                              border: OutlineInputBorder(),
+                              contentPadding: EdgeInsets.only(
+                                top: 25,
+                                bottom: 10,
+                                left: 15,
+                                right: 15,
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Wrap(
+                                  alignment: WrapAlignment.center,
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: [
+                                    FrequencyOption(
+                                      label: "By Day",
+                                      isSelected:
+                                          _frequencyTakenController.text ==
+                                          "By Day",
+                                      onPressed: () {
+                                        setState(() {
+                                          // Clear other mode's values first
+                                          if (_frequencyTakenController.text !=
+                                              "By Day") {
+                                            _hourlyFrequencyController.text =
+                                                "N/A";
+                                            _numberOfDosesPerDayController
+                                                .text = "N/A";
+                                            // Reset this shared controller to a sensible default for "By Day" mode
+                                            _numberOfDosesController.text = "1";
+                                          }
+                                          _frequencyTakenController.text =
+                                              "By Day";
+                                          _recalculateRefillDate();
+                                        });
+                                      },
+                                    ),
+                                    FrequencyOption(
+                                      label: "By Hour",
+                                      isSelected:
+                                          _frequencyTakenController.text ==
+                                          "By Hour",
+                                      onPressed: () {
+                                        setState(() {
+                                          if (_frequencyTakenController.text !=
+                                              "By Hour") {
+                                            _numberOfDosesController.text = "";
+                                            _hourlyFrequencyController.text =
+                                                "";
+                                            _numberOfDosesPerDayController
+                                                .text = "";
+                                          }
+                                          _frequencyTakenController.text =
+                                              "By Hour";
+                                          _recalculateRefillDate();
+                                        });
+                                      },
+                                    ),
+                                    FrequencyOption(
+                                      label: "As needed",
+                                      isSelected:
+                                          _frequencyTakenController.text ==
+                                          "As needed",
+                                      onPressed: () {
+                                        setState(() {
+                                          _frequencyTakenController.text =
+                                              "As needed";
+                                          _recalculateRefillDate(); // Add this line
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
+
+                                // Daily Frequency
+                                if (_frequencyTakenController.text == "By Day")
+                                  Column(
+                                    children: [
+                                      SizedBox(height: 8),
+                                      TextField(
+                                        controller: _numberOfDosesController,
+                                        decoration: InputDecoration(
+                                          labelText: "Number of Doses",
+                                          border: OutlineInputBorder(),
+                                          prefixIcon: Icon(Icons.numbers),
+                                        ),
+                                        keyboardType: TextInputType.number,
+                                      ),
+                                    ],
+                                  ),
+                                // Hourly Frequency
+                                if (_frequencyTakenController.text == "By Hour")
+                                  Column(
+                                    children: [
+                                      SizedBox(height: 8),
+                                      // Frequency
+                                      TextField(
+                                        controller: _numberOfDosesController,
+                                        decoration: InputDecoration(
+                                          labelText: "Number of doses",
+                                          border: OutlineInputBorder(),
+                                          prefixIcon: Icon(Icons.numbers),
+                                        ),
+                                        keyboardType: TextInputType.number,
+                                      ),
+                                      SizedBox(height: 8),
+                                      TextField(
+                                        controller: _hourlyFrequencyController,
+                                        decoration: InputDecoration(
+                                          labelText: "Every X hours",
+                                          border: OutlineInputBorder(),
+                                          prefixIcon: Icon(Icons.numbers),
+                                        ),
+                                        keyboardType: TextInputType.number,
+                                      ),
+                                      SizedBox(height: 8),
+                                      TextField(
+                                        controller:
+                                            _numberOfDosesPerDayController,
+                                        decoration: InputDecoration(
+                                          labelText: "X times a day",
+                                          border: OutlineInputBorder(),
+                                          prefixIcon: Icon(Icons.numbers),
+                                        ),
+                                        keyboardType: TextInputType.number,
+                                      ),
+                                    ],
+                                  ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(height: 16),
+
+                          // Start Date
                           InkWell(
                             onTap: () => _selectStartDate(context),
                             child: InputDecorator(
@@ -297,21 +506,50 @@ class MedicationScheduleWidgetState extends State<MedicationScheduleWidget> {
                           ),
                           SizedBox(height: 16),
 
-                          InkWell(
-                            onTap: () => _selectRefillDate(context),
-                            child: InputDecorator(
+                          // Refill Date
+                          // Replace the Refill Date InkWell with a non-tappable InputDecorator
+                          // If the frequency is "As needed", allow them to select a refill date
+                          // If the frequency is "By Day" or "By Hour", calculate the refill date
+                          if (_frequencyTakenController.text == "As needed")
+                            InkWell(
+                              onTap: () => _selectRefillDate(context),
+                              child: InputDecorator(
+                                decoration: InputDecoration(
+                                  labelText: "Refill Date",
+                                  border: OutlineInputBorder(),
+                                  prefixIcon: Icon(Icons.refresh),
+                                ),
+                                child: Text(
+                                  _selectedRefillDate != null
+                                      ? _formatDate(_selectedRefillDate!)
+                                      : "Not set",
+                                ),
+                              ),
+                            )
+                          else
+                            InputDecorator(
                               decoration: InputDecoration(
-                                labelText: "Refill Date (Optional)",
+                                labelText: "Calculated Refill Date",
                                 border: OutlineInputBorder(),
                                 prefixIcon: Icon(Icons.refresh),
                               ),
-                              child: Text(
-                                _selectedRefillDate != null
-                                    ? _formatDate(_selectedRefillDate!)
-                                    : "Not set",
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    _selectedRefillDate != null
+                                        ? _formatDate(_selectedRefillDate!)
+                                        : "Not set",
+                                  ),
+                                  Icon(
+                                    Icons.calculate,
+                                    color: Colors.grey,
+                                    size: 16,
+                                  ),
+                                ],
                               ),
                             ),
-                          ),
                           SizedBox(height: 16),
 
                           InkWell(
@@ -335,29 +573,39 @@ class MedicationScheduleWidgetState extends State<MedicationScheduleWidget> {
           ),
 
           // Confirm Button - Outside scrollview to stay fixed at bottom
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: confirmMedicationSchedule,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.getItGreen,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                ),
-                child: Text(
-                  "Schedule Medication",
-                  style: TextStyle(fontSize: 18),
-                ),
-              ),
-            ),
+          MyConfirmationButton(
+            text: 'Schedule Medication',
+            actionIcon: Icons.add,
+            actionOnPressed: confirmMedicationSchedule,
+            backgroundColor: AppColors.getItGreen,
+            textColor: AppColors.white,
           ),
         ],
       ),
+    );
+  }
+}
+
+class FrequencyOption extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onPressed;
+
+  const FrequencyOption({
+    required this.label,
+    required this.isSelected,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: isSelected ? AppColors.getItGreen : null,
+        foregroundColor: isSelected ? Colors.white : null,
+      ),
+      child: Text(label),
     );
   }
 }

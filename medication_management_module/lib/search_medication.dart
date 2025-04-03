@@ -134,63 +134,68 @@ class _MedicationSearchWidgetState extends State<MedicationSearchWidget> {
   @override
   Widget build(BuildContext context) {
     // Column layout for search box and results
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              labelText: 'Search Medications',
-              prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(),
-              filled: true,
-              fillColor: Colors.white,
-              // Conditional clear button
-              suffixIcon:
-                  _searchController.text.isNotEmpty
-                      ? IconButton(
-                        icon: Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() {
-                            _searchResults = [];
-                          });
-                        },
-                      )
-                      : null,
-            ),
-          ),
-        ),
-
-        // Show loading indicator or results list
-        // LEARN: Conditional rendering based on state
-        _isLoading
-            ? CircularProgressIndicator() // Loading state
-            : Expanded(
-              // LEARN: ListView.builder creates items only when visible (performance optimization)
-              child: ListView.builder(
-                itemCount: _searchResults.length,
-                itemBuilder: (context, index) {
-                  final medication = _searchResults[index];
-                  // Extract data with null safety using ?. operator
-                  final brandName =
-                      medication['openfda']?['brand_name']?[0] ?? 'Unknown';
-                  final genericName =
-                      medication['openfda']?['generic_name']?[0] ?? 'Unknown';
-
-                  return ListTile(
-                    title: Text(brandName),
-                    subtitle: Text(genericName),
-                    onTap: () {
-                      // Handle selection and pass to parent
-                      selectedMedication(brandName, genericName);
-                    },
-                  );
-                },
+    return SafeArea(
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                labelText: 'Search Medications',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+                filled: true,
+                fillColor: Colors.white,
+                // Conditional clear button
+                suffixIcon:
+                    _searchController.text.isNotEmpty
+                        ? IconButton(
+                          icon: Icon(Icons.clear),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() {
+                              _searchResults = [];
+                            });
+                          },
+                        )
+                        : null,
               ),
             ),
-      ],
+          ),
+
+          // Show loading indicator or results list
+          // LEARN: Conditional rendering based on state
+          _isLoading
+              ? CircularProgressIndicator() // Loading state
+              : Expanded(
+                // LEARN: ListView.builder creates items only when visible (performance optimization)
+                child: ListView.builder(
+                  itemCount: _searchResults.length,
+                  itemBuilder: (context, index) {
+                    final medicationResults = _searchResults[index];
+                    // Extract data with null safety using ?. operator
+                    final brandName =
+                        medicationResults['openfda']?['brand_name']?[0] ??
+                        'Unknown';
+
+                    final genericName =
+                        medicationResults['openfda']?['generic_name']?[0] ??
+                        'Unknown';
+
+                    return ListTile(
+                      title: Text(brandName),
+                      subtitle: Text(genericName),
+                      onTap: () {
+                        // Handle selection and pass to parent
+                        selectedMedication(brandName, genericName);
+                      },
+                    );
+                  },
+                ),
+              ),
+        ],
+      ),
     );
   }
 }

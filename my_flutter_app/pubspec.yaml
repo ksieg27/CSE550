@@ -33,7 +33,12 @@ dependencies:
   medication_management_module:
     path: ../medication_management_module # Adjust path if it's inside your project
   http: ^1.1.0 
-
+  provider: ^6.0.5
+  path: ^1.8.0
+  path_provider: ^2.1.3
+  sqflite: ^2.3.3
+  sqflite_common_ffi: ^2.3.3
+  
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8

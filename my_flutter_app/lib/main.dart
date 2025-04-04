@@ -1,4 +1,4 @@
-import 'package:medication_management_module/medication_management_module.dart'; // Import the module
+import 'package:medication_management_module/ui/Listing/view/medication_management_module.dart'; // Import the module
 import 'package:flutter/material.dart';
 import 'package:my_flutter_app/screens/user_profile_screen.dart';
 
@@ -14,10 +14,12 @@ class AppColors {
 
 // Main entry point for the application
 // LEARN: Flutter uses a single main() function as the application entry point
-void main() {
-  runApp(
-    const MyApp(),
-  ); // runApp inflates the widget tree and attaches it to the screen
+void main() async {
+  // Ensure Flutter is initialized
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Run the app
+  runApp(const MyApp());
 }
 
 // Root widget that configures the overall app theme and initial route

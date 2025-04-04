@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'dart:convert'; // For JSON parsing
 import 'dart:async'; // For Timer functionality
 
-// Stateful widget for medication search UI
-// LEARN: Custom widgets should focus on a single responsibility
 class MedicationSearchWidget extends StatefulWidget {
   // Callback function for when medication is selected
   // LEARN: Function parameters allow parent widgets to respond to child events
@@ -16,8 +14,6 @@ class MedicationSearchWidget extends StatefulWidget {
   _MedicationSearchWidgetState createState() => _MedicationSearchWidgetState();
 }
 
-// API function to search for medications
-// LEARN: Async functions return Future objects for non-blocking operations
 Future<List<dynamic>> searchMedications(String query) async {
   if (query.isEmpty) return [];
 
@@ -188,6 +184,7 @@ class _MedicationSearchWidgetState extends State<MedicationSearchWidget> {
                       subtitle: Text(genericName),
                       onTap: () {
                         // Handle selection and pass to parent
+                        // How do I pass this value to the scheduleing screen?
                         selectedMedication(brandName, genericName);
                       },
                     );

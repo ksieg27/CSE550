@@ -1,40 +1,42 @@
-import 'package:medication_management_module/medication_management_module.dart'; // Import the module
 import 'package:flutter/material.dart';
+import 'package:medication_management_module/services/notifications_service.dart';
+import 'package:medication_management_module/ui/Listing/view/medication_management_view.dart';
 import 'package:my_flutter_app/screens/user_profile_screen.dart';
 
-// Define a library of colors for easy reference
+/// Application-wide color scheme
 class AppColors {
   static const Color offBlue = Color(0xFFE0F7FA);
   static const Color deepBlues = Color(0xFF2C3E50);
   static const Color getItGreen = Color(0xFF76C7C0);
   static const Color urgentOrange = Color(0xFFF4A261);
   static const Color white = Color(0xFFFFFFFF);
-  // Add more colors as needed
+
+  // Private constructor to prevent instantiation
+  AppColors._();
 }
 
-// Main entry point for the application
-// LEARN: Flutter uses a single main() function as the application entry point
-void main() {
-  runApp(
-    const MyApp(),
-  ); // runApp inflates the widget tree and attaches it to the screen
+/// Application entry point
+void main() async {
+  // Ensure Flutter is initialized
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize notification service
+  await NotificationService().init();
+
+  // Run the app
+  runApp(const MyApp());
 }
 
-// Root widget that configures the overall app theme and initial route
-// LEARN: StatelessWidget is used for UI components that don't change state internally
+/// Root widget that configures the application theme and initial route
 class MyApp extends StatelessWidget {
-  const MyApp({
-    super.key,
-  }); // Constructor with const for widget caching optimization
+  const MyApp({super.key});
 
-  //
   @override
   Widget build(BuildContext context) {
-    // MaterialApp provides the foundation for material design and navigation
     return MaterialApp(
-      title: 'Medication Tracker', // App name shown in task switchers
+      title: 'Medication Tracker',
       theme: ThemeData(
-        textTheme: TextTheme(
+        textTheme: const TextTheme(
           headlineMedium: TextStyle(
             fontFamily: 'Inter',
             fontSize: 32.0,
@@ -49,100 +51,100 @@ class MyApp extends StatelessWidget {
             color: AppColors.deepBlues,
           ),
         ),
-        colorScheme: ColorScheme.fromSeed(seedColor: Color(0xFF2C3E50)),
+        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.deepBlues),
+        useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Medication Tracker'), // Initial route
+      home: const MyHomePage(title: 'Medication Tracker'),
     );
   }
 }
 
-// Primary screen widget that can maintain state
-// LEARN: StatefulWidget separates widget configuration from mutable state
+/// Main page of the application
 class MyHomePage extends StatefulWidget {
+  final String title;
+
   const MyHomePage({super.key, required this.title});
 
-  final String title; // Immutable configuration parameter
-
   @override
-  // Creates the mutable state associated with this widget
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-// Implementation of the MyHomePage widget's state and UI
-// LEARN: State objects contain mutable data that can change during widget lifetime
+/// State for the main page
 class _MyHomePageState extends State<MyHomePage> {
-  int _totalMedications = 0; // Private mutable state variable
+  int _totalMedications = 0;
+
+  /// Updates the medication count from child widgets
+  void _handleMedicationCountChanged(int count) {
+    // Use a post-frame callback to avoid setState during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {
+        _totalMedications = count;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Scaffold implements the basic material design layout structure
     return Scaffold(
-      // App header with title
       appBar: AppBar(
-        // Uses theme colors for consistent appearance
         backgroundColor: AppColors.white,
         title: Text(
           widget.title,
           style: Theme.of(context).textTheme.headlineMedium,
-        ), // Accesses parent widget's immutable properties with 'widget.'
+        ),
       ),
+      body: SingleChildScrollView(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              const SizedBox(height: 20),
 
-      // Main content area with counter and medication module
-      body: Center(
-        child: Column(
-          // Aligns children at the top of the available space
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            const SizedBox(height: 20), // Optional top padding
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      "Hi, John, you have $_totalMedications medication(s) scheduled today",
-                      style: Theme.of(context).textTheme.bodyMedium,
+              // User greeting and profile
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        "Hi, John, you have $_totalMedications medication(s) scheduled today",
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
                     ),
-                  ),
-                  InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => UserProfileScreen(),
+                    InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => UserProfileScreen(),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(8.0),
+                        decoration: const BoxDecoration(
+                          color: AppColors.deepBlues,
+                          shape: BoxShape.circle,
                         ),
-                      );
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(8.0),
-                      decoration: BoxDecoration(
-                        color: AppColors.deepBlues,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.person,
-                        color: Colors.white,
-                        size: 24.0,
+                        child: const Icon(
+                          Icons.person,
+                          color: Colors.white,
+                          size: 24.0,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-            // Integration point for Medication Management Module
-            // LEARN: This demonstrates modular architecture with external packages
-            // LEARN: The module is a self-contained widget that can be reused in other apps
-            MedicationModuleWidget(
-              onMedicationCountChanged: (count) {
-                setState(() {
-                  _totalMedications = count;
-                });
-              },
-            ),
-          ],
+              // Medication management module
+              MedicationModuleWidget(
+                onMedicationCountChanged: _handleMedicationCountChanged,
+              ),
+            ],
+          ),
         ),
       ),
     );

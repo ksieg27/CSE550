@@ -43,3 +43,15 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# different versions of podfile don't matter to us but mess up builds
+my_flutter_app/ios/Podfile.lock
+my_flutter_app/macos/Podfile.lock
+my_flutter_app/pubspec.lock
+my_flutter_app/pubspec.lock
+my_flutter_app/ios/Podfile.lock
+my_flutter_app/linux/flutter/generated_plugin_registrant.cc
+my_flutter_app/linux/flutter/generated_plugins.cmake
+my_flutter_app/macos/Podfile.lock
+my_flutter_app/macos/Flutter/GeneratedPluginRegistrant.swift
+my_flutter_app/windows/flutter/generated_plugin_registrant.cc

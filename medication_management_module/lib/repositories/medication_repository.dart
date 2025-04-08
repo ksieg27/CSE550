@@ -5,4 +5,5 @@ abstract class MedicationRepository {
   Future<List<MyMedication>> fetchMedications();
   Future<void> updateMedication(MyMedication medication);
   Future<void> deleteMedication(int id);
+  Future<MyMedication?> getMedicationById(int id);
 }

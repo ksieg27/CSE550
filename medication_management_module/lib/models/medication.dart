@@ -1,15 +1,17 @@
 class MyMedication {
   // Add ID field
-  int? id;
+  final int? id;
   final String profile;
   final String brandName;
   final String genericName;
-  final int quantity;
+  int quantity;
   final int startDate;
   final String? refillDate;
-  final int time;
+  int time;
   final String dosage;
   final int? numberOfDoses;
+
+  //Add a notes field when creating a medication
   final String? notes;
   final String? endDate;
 

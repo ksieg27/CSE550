@@ -1,19 +1,16 @@
+import 'package:firebase_ui_auth/firebase_ui_auth.dart'; // new
 import 'package:flutter/material.dart';
+import 'package:medication_management_module/services/notifications_service.dart';
 import 'package:medication_management_module/services/notifications_service.dart';
 import 'package:medication_management_module/ui/Listing/view/medication_management_view.dart';
 import 'package:my_flutter_app/screens/user_profile_screen.dart';
+import 'package:go_router/go_router.dart';               // new
+import 'package:provider/provider.dart'; // Import provider for state management
 
-/// Application-wide color scheme
-class AppColors {
-  static const Color offBlue = Color(0xFFE0F7FA);
-  static const Color deepBlues = Color(0xFF2C3E50);
-  static const Color getItGreen = Color(0xFF76C7C0);
-  static const Color urgentOrange = Color(0xFFF4A261);
-  static const Color white = Color(0xFFFFFFFF);
-
-  // Private constructor to prevent instantiation
-  AppColors._();
-}
+import 'app_state.dart'; // Import the app state management
+import 'home_page.dart'; // Import the home page
+import 'screens/med_manage.dart';
+import 'src/theme.dart';
 
 /// Application entry point
 void main() async {
@@ -24,16 +21,20 @@ void main() async {
   await NotificationService().init();
 
   // Run the app
-  runApp(const MyApp());
+  // runApp(const MyApp());
+  runApp(ChangeNotifierProvider(
+    create: (context) => ApplicationState(),
+    builder: ((context, child) => const MyApp()),
+  )); // Wraps the app with a provider for state management
 }
 
-/// Root widget that configures the application theme and initial route
+// /// Root widget that configures the application theme and initial route
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'Medication Tracker',
       theme: ThemeData(
         textTheme: const TextTheme(
@@ -54,99 +55,92 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.deepBlues),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Medication Tracker'),
+      routerConfig: _router,
+//       home: const MyHomePage(title: 'Medication Tracker'),
     );
   }
 }
 
-/// Main page of the application
-class MyHomePage extends StatefulWidget {
-  final String title;
-
-  const MyHomePage({super.key, required this.title});
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-/// State for the main page
-class _MyHomePageState extends State<MyHomePage> {
-  int _totalMedications = 0;
-
-  /// Updates the medication count from child widgets
-  void _handleMedicationCountChanged(int count) {
-    // Use a post-frame callback to avoid setState during build
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      setState(() {
-        _totalMedications = count;
-      });
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: AppColors.white,
-        title: Text(
-          widget.title,
-          style: Theme.of(context).textTheme.headlineMedium,
+//configure "go_router" for navigation through pre-made login flow
+final _router = GoRouter(
+  routes: [
+    GoRoute(
+      path: '/',
+      builder: (context, state) => const HomePage(),
+      routes: [
+        GoRoute(
+          path: 'sign-in',
+          builder: (context, state) {
+            return SignInScreen(
+              actions: [
+                ForgotPasswordAction(((context, email) {
+                  final uri = Uri(
+                    path: '/sign-in/forgot-password',
+                    queryParameters: <String, String?>{
+                      'email': email,
+                    },
+                  );
+                  context.push(uri.toString());
+                })),
+                AuthStateChangeAction(((context, state) {
+                  final user = switch (state) {
+                    SignedIn state => state.user,
+                    UserCreated state => state.credential.user,
+                    _ => null
+                  };
+                  if (user == null) {
+                    return;
+                  }
+                  if (state is UserCreated) {
+                    user.updateDisplayName(user.email!.split('@')[0]);
+                  }
+                  if (!user.emailVerified) {
+                    user.sendEmailVerification();
+                    const snackBar = SnackBar(
+                        content: Text(
+                            'Please check your email to verify your email address'));
+                    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                  }
+                  context.pushReplacement('/');
+                })),
+              ],
+            );
+          },
+          routes: [
+            GoRoute(
+              path: 'forgot-password',
+              builder: (context, state) {
+                final arguments = state.uri.queryParameters;
+                return ForgotPasswordScreen(
+                  email: arguments['email'],
+                  headerMaxExtent: 200,
+                );
+              },
+            ),
+          ],
         ),
-      ),
-      body: SingleChildScrollView(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: <Widget>[
-              const SizedBox(height: 20),
-
-              // User greeting and profile
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        "Hi, John, you have $_totalMedications medication(s) scheduled today",
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                    ),
-                    InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => UserProfileScreen(),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(8.0),
-                        decoration: const BoxDecoration(
-                          color: AppColors.deepBlues,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.person,
-                          color: Colors.white,
-                          size: 24.0,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Medication management module
-              MedicationModuleWidget(
-                onMedicationCountChanged: _handleMedicationCountChanged,
-              ),
-            ],
-          ),
+        GoRoute(
+          path: 'profile',
+          builder: (context, state) {
+            return ProfileScreen(
+              providers: const [],
+              actions: [
+                SignedOutAction((context) {
+                  context.pushReplacement('/');
+                }),
+              ],
+            );
+          },
         ),
-      ),
-    );
-  }
-}
+      ],
+    ),
+    GoRoute(
+      path: '/screens/user_profile_screen',
+      builder: (context, state) => UserProfileScreen(),
+    ),
+    GoRoute(
+      path: '/screens/med_manage',
+      builder: (context, state) => MedManage(title: 'Medications')
+    ),
+  ],
+);

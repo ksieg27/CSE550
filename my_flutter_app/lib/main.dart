@@ -1,8 +1,6 @@
 import 'package:firebase_ui_auth/firebase_ui_auth.dart'; // new
 import 'package:flutter/material.dart';
 import 'package:medication_management_module/services/notifications_service.dart';
-import 'package:medication_management_module/services/notifications_service.dart';
-import 'package:medication_management_module/ui/Listing/view/medication_management_view.dart';
 import 'package:my_flutter_app/screens/user_profile_screen.dart';
 import 'package:go_router/go_router.dart';               // new
 import 'package:provider/provider.dart'; // Import provider for state management
@@ -72,6 +70,16 @@ final _router = GoRouter(
           path: 'sign-in',
           builder: (context, state) {
             return SignInScreen(
+              headerBuilder: (context, constraints, header) {
+                return Container(
+                  height: 200,
+                  decoration: const BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage('assets/medreminder.jpg'),
+                    ),
+                  ),
+                );
+              },
               actions: [
                 ForgotPasswordAction(((context, email) {
                   final uri = Uri(
@@ -94,13 +102,13 @@ final _router = GoRouter(
                   if (state is UserCreated) {
                     user.updateDisplayName(user.email!.split('@')[0]);
                   }
-                  if (!user.emailVerified) {
-                    user.sendEmailVerification();
-                    const snackBar = SnackBar(
-                        content: Text(
-                            'Please check your email to verify your email address'));
-                    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-                  }
+                  // if (!user.emailVerified) {
+                  //   user.sendEmailVerification();
+                  //   const snackBar = SnackBar(
+                  //       content: Text(
+                  //           'Please check your email to verify your email address'));
+                  //   ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                  // }
                   context.pushReplacement('/');
                 })),
               ],

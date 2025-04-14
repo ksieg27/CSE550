@@ -23,7 +23,8 @@ class AuthFunc extends StatelessWidget {
           mainAxisAlignment: !loggedIn ? MainAxisAlignment.center : MainAxisAlignment.start,
           children: [
             Padding(
-              padding: loggedIn ? const EdgeInsets.only(left: 24,  bottom: 8) : const EdgeInsets.only(bottom: 8),
+              padding: loggedIn ? const EdgeInsets.only(left: 24,  bottom: 8) 
+              : const EdgeInsets.only(bottom: 8),
               child: StyledButton(
                 onPressed: () {
                   !loggedIn ? context.push('/sign-in') : signOut();

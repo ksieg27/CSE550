@@ -1,8 +1,6 @@
 import 'package:firebase_ui_auth/firebase_ui_auth.dart'; // new
 import 'package:flutter/material.dart';
 import 'package:medication_management_module/services/notifications_service.dart';
-import 'package:medication_management_module/services/notifications_service.dart';
-import 'package:medication_management_module/ui/Listing/view/medication_management_view.dart';
 import 'package:my_flutter_app/screens/user_profile_screen.dart';
 import 'package:go_router/go_router.dart';               // new
 import 'package:provider/provider.dart'; // Import provider for state management

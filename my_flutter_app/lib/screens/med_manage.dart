@@ -1,20 +1,12 @@
+import 'package:firebase_auth/firebase_auth.dart'
+    hide EmailAuthProvider, PhoneAuthProvider;
 import 'package:flutter/material.dart';
-import 'package:medication_management_module/services/notifications_service.dart';
+import 'package:go_router/go_router.dart';
 import 'package:medication_management_module/ui/Listing/view/medication_management_view.dart';
 import 'package:my_flutter_app/screens/user_profile_screen.dart';
+import 'package:provider/provider.dart';
 import '/src/theme.dart';
-
-/// Application-wide color scheme moved to src/theme.dart for imports
-// class AppColors {
-//   static const Color offBlue = Color(0xFFE0F7FA);
-//   static const Color deepBlues = Color(0xFF2C3E50);
-//   static const Color getItGreen = Color(0xFF76C7C0);
-//   static const Color urgentOrange = Color(0xFFF4A261);
-//   static const Color white = Color(0xFFFFFFFF);
-
-//   // Private constructor to prevent instantiation
-//   AppColors._();
-// }
+import '/app_state.dart';
 
 /// Main page of the application
 class MedManage extends StatefulWidget {
@@ -44,11 +36,29 @@ class _MedManageState extends State<MedManage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false, // Remove the back arrow
         backgroundColor: AppColors.white,
         title: Text(
           widget.title,
           style: Theme.of(context).textTheme.headlineMedium,
         ),
+        actions: [
+          Consumer<ApplicationState>(
+            builder: (context, appState, _) {
+              if (appState.loggedIn) {
+                return IconButton(
+                  icon: const Icon(Icons.logout),
+                  tooltip: 'Logout',
+                  onPressed: () {
+                    FirebaseAuth.instance.signOut();
+                    context.go('/home'); // Navigate to the home page using GoRouter
+                  },
+                );
+              }
+              return const SizedBox.shrink(); // No button if not logged in
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Center(

@@ -150,5 +150,9 @@ final _router = GoRouter(
       path: '/screens/med_manage',
       builder: (context, state) => MedManage(title: 'Medications')
     ),
+    GoRoute(
+      path: '/home',
+      builder: (context, state) => const HomePage(),
+    )
   ],
 );

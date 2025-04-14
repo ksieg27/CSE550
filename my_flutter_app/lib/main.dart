@@ -94,13 +94,13 @@ final _router = GoRouter(
                   if (state is UserCreated) {
                     user.updateDisplayName(user.email!.split('@')[0]);
                   }
-                  if (!user.emailVerified) {
-                    user.sendEmailVerification();
-                    const snackBar = SnackBar(
-                        content: Text(
-                            'Please check your email to verify your email address'));
-                    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-                  }
+                  // if (!user.emailVerified) {
+                  //   user.sendEmailVerification();
+                  //   const snackBar = SnackBar(
+                  //       content: Text(
+                  //           'Please check your email to verify your email address'));
+                  //   ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                  // }
                   context.pushReplacement('/');
                 })),
               ],

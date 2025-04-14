@@ -72,6 +72,16 @@ final _router = GoRouter(
           path: 'sign-in',
           builder: (context, state) {
             return SignInScreen(
+              headerBuilder: (context, constraints, header) {
+                return Container(
+                  height: 200,
+                  decoration: const BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage('assets/medreminder.jpg'),
+                    ),
+                  ),
+                );
+              },
               actions: [
                 ForgotPasswordAction(((context, email) {
                   final uri = Uri(

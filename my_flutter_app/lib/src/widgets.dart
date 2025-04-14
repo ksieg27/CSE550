@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'theme.dart';
 
 class Header extends StatelessWidget {
   const Header(this.heading, {super.key});
@@ -51,7 +52,7 @@ class StyledButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) => OutlinedButton(
     style: OutlinedButton.styleFrom(
-      side: const BorderSide(color: Colors.deepPurple),
+      side: const BorderSide(color: AppColors.deepBlues),
     ),
     onPressed: onPressed,
     child: child,

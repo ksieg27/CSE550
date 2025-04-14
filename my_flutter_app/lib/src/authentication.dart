@@ -15,49 +15,30 @@ class AuthFunc extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (loggedIn) {
+      // Automatically navigate to the Medications page
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.push('/screens/med_manage');
+      });
+      return const SizedBox.shrink(); // Return an empty widget while navigating
+    }
+
     return Column(
-      mainAxisAlignment: !loggedIn ? MainAxisAlignment.center : MainAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Row(
-          mainAxisAlignment: !loggedIn ? MainAxisAlignment.center : MainAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Padding(
-              padding: loggedIn ? const EdgeInsets.only(left: 24,  bottom: 8) 
-              : const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.only(bottom: 8),
               child: StyledButton(
                 onPressed: () {
-                  !loggedIn ? context.push('/sign-in') : signOut();
+                  context.push('/sign-in');
                 },
-                child: !loggedIn ? const Text('Sign-in') : const Text('Logout'),
+                child: const Text('Sign-in'),
               ),
             ),
-            if (loggedIn) ...[
-              Visibility(
-                visible: loggedIn,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 24, bottom: 8),
-                  child: StyledButton(
-                    onPressed: () {
-                      context.push('/screens/user_profile_screen');
-                    },
-                    child: const Text('Profile'),
-                  ),
-                ),
-              ),
-              Visibility(
-                visible: loggedIn,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 24, bottom: 8),
-                  child: StyledButton(
-                    onPressed: () {
-                      context.push('/screens/med_manage');
-                    },
-                    child: const Text('Medications'),
-                  ),
-                ),
-              ),
-            ],
           ],
         ),
       ],

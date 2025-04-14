@@ -13,15 +13,26 @@ class UserProfileScreen extends StatelessWidget {
             TextFormField(decoration: InputDecoration(labelText: 'Last Name')),
             TextFormField(decoration: InputDecoration(labelText: 'Doctor')),
             SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                print('Profile submitted!');
-              },
-              child: Text('Submit'),
-            ),
+            Button(),
           ],
         ),
       ),
+    );
+  }
+}
+
+class Button extends StatelessWidget {
+  const Button({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton(
+      onPressed: () {
+        print('Profile submitted!');
+      },
+      child: Text('Submit'),
     );
   }
 }

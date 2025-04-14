@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart'
     hide EmailAuthProvider, PhoneAuthProvider;
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:medication_management_module/ui/Listing/view/medication_management_view.dart';
 import 'package:my_flutter_app/screens/user_profile_screen.dart';
 import 'package:provider/provider.dart';
@@ -50,14 +51,14 @@ class _MedManageState extends State<MedManage> {
                   tooltip: 'Logout',
                   onPressed: () {
                     FirebaseAuth.instance.signOut();
-                    Navigator.pushReplacementNamed(context, '/');
+                    context.go('/home'); // Navigate to the home page using GoRouter
                   },
                 );
               }
               return const SizedBox.shrink(); // No button if not logged in
             },
-          )
-        ]
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Center(

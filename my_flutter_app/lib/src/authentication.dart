@@ -32,11 +32,12 @@ class AuthFunc extends StatelessWidget {
           children: [
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
-              child: StyledButton(
-                onPressed: () {
+              child: MyConfirmationButton(
+                actionOnPressed: () {
                   context.push('/sign-in');
                 },
-                child: const Text('Sign-in'),
+                text: 'Sign-in',
+                icon: null,
               ),
             ),
           ],

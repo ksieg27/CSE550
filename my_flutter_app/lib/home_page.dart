@@ -9,7 +9,6 @@ import 'package:provider/provider.dart';
 
 import 'app_state.dart';
 import 'src/authentication.dart';
-// import 'src/widgets.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});

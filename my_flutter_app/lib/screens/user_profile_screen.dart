@@ -23,10 +23,31 @@ class UserProfileScreen extends StatelessWidget {
                   icon: const Icon(Icons.logout),
                   tooltip: 'Logout',
                   onPressed: () {
-                    FirebaseAuth.instance.signOut();
-                    context.go(
-                      '/home',
-                    ); // Navigate to the home page using GoRouter
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text('Logout'),
+                          content: const Text('Are you sure you want to logout?'),
+                          actions: [
+                            TextButton(
+                              child: const Text('Cancel'),
+                              onPressed: () {
+                                Navigator.of(context).pop(); // Close the dialog
+                              },
+                            ),
+                            TextButton(
+                              child: const Text('Logout'),
+                              onPressed: () {
+                                FirebaseAuth.instance.signOut();
+                                Navigator.of(context).pop(); // Close the dialog
+                                context.go('/home');
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
                   },
                 );
             },

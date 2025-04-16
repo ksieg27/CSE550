@@ -2,11 +2,12 @@ import 'package:firebase_ui_auth/firebase_ui_auth.dart'; // new
 import 'package:flutter/material.dart';
 import 'package:medication_management_module/services/notifications_service.dart';
 import 'package:my_flutter_app/screens/user_profile_screen.dart';
-import 'package:go_router/go_router.dart';               // new
+import 'package:go_router/go_router.dart'; // new
 import 'package:provider/provider.dart'; // Import provider for state management
 
 import 'app_state.dart'; // Import the app state management
 import 'home_page.dart'; // Import the home page
+import 'screens/todays_meds.dart'; // Import todays medications
 import 'screens/med_manage.dart';
 import 'src/theme.dart';
 
@@ -20,10 +21,12 @@ void main() async {
 
   // Run the app
   // runApp(const MyApp());
-  runApp(ChangeNotifierProvider(
-    create: (context) => ApplicationState(),
-    builder: ((context, child) => const MyApp()),
-  )); // Wraps the app with a provider for state management
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => ApplicationState(),
+      builder: ((context, child) => const MyApp()),
+    ),
+  ); // Wraps the app with a provider for state management
 }
 
 // /// Root widget that configures the application theme and initial route
@@ -54,7 +57,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       routerConfig: _router,
-//       home: const MyHomePage(title: 'Medication Tracker'),
+      //       home: const MyHomePage(title: 'Medication Tracker'),
     );
   }
 }
@@ -64,7 +67,7 @@ final _router = GoRouter(
   routes: [
     GoRoute(
       path: '/',
-      builder: (context, state) => const HomePage(),
+      builder: (context, state) => const TodaysMeds(title: 'Medications'),
       routes: [
         GoRoute(
           path: 'sign-in',
@@ -84,9 +87,7 @@ final _router = GoRouter(
                 ForgotPasswordAction(((context, email) {
                   final uri = Uri(
                     path: '/sign-in/forgot-password',
-                    queryParameters: <String, String?>{
-                      'email': email,
-                    },
+                    queryParameters: <String, String?>{'email': email},
                   );
                   context.push(uri.toString());
                 })),
@@ -94,7 +95,7 @@ final _router = GoRouter(
                   final user = switch (state) {
                     SignedIn state => state.user,
                     UserCreated state => state.credential.user,
-                    _ => null
+                    _ => null,
                   };
                   if (user == null) {
                     return;
@@ -148,11 +149,12 @@ final _router = GoRouter(
     ),
     GoRoute(
       path: '/screens/med_manage',
-      builder: (context, state) => MedManage(title: 'Medications')
+      builder: (context, state) => MedManage(title: 'Medications'),
     ),
     GoRoute(
-      path: '/home',
-      builder: (context, state) => const HomePage(),
-    )
+      path: '/screens/todays_meds',
+      builder: (context, state) => TodaysMeds(title: 'Todays Medications'),
+    ),
+    GoRoute(path: '/home', builder: (context, state) => const HomePage()),
   ],
 );

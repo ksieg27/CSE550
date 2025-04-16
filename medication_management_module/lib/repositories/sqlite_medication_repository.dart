@@ -9,7 +9,6 @@ class SQLiteMedicationRepository implements MedicationRepository {
   final DatabaseHelper _databaseHelper = DatabaseHelper();
 
   /// Adds a new medication to the database
-  ///
   /// Returns the ID of the newly inserted medication
   @override
   Future<int> addMedication(MyMedication medication) async {

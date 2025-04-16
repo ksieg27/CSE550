@@ -8,34 +8,31 @@ import 'package:confetti/confetti.dart';
 import '../view_models/medication_management_view_model.dart';
 import '../../../models/medication.dart';
 
-/// Main widget that serves as the entry point to the medication management module
-class MedicationModuleWidget extends StatelessWidget {
-  /// Callback to notify parent widget of medication count changes
+//We want to list the medications that are scheduled for today only.
+//It should not display a delete medication button
+//It should have a + to add a new medication
+class ListTodaysMedicationWidget extends StatelessWidget {
   final Function(int)? onMedicationCountChanged;
 
-  /// Constructor with optional callback
-  const MedicationModuleWidget({super.key, this.onMedicationCountChanged});
+  const ListTodaysMedicationWidget({super.key, this.onMedicationCountChanged});
 
   @override
   Widget build(BuildContext context) {
-    // Wrap with ChangeNotifierProvider to provide view model to descendant widgets
     return ChangeNotifierProvider(
       create:
           (_) => MedicationManagementViewModel(
             onMedicationCountChanged: onMedicationCountChanged,
           ),
-      child: const _MedicationModuleView(),
+      child: const _ListTodaysMedicationView(),
     );
   }
 }
 
-/// Widget that displays the medication management interface
-class _MedicationModuleView extends StatelessWidget {
-  const _MedicationModuleView();
+class _ListTodaysMedicationView extends StatelessWidget {
+  const _ListTodaysMedicationView();
 
   @override
   Widget build(BuildContext context) {
-    // Access view model from provider
     final viewModel = Provider.of<MedicationManagementViewModel>(context);
 
     // Get screen dimensions for responsive layout
@@ -47,7 +44,6 @@ class _MedicationModuleView extends StatelessWidget {
         children: [
           Center(
             child: Container(
-              // Container styling with responsive dimensions
               margin: const EdgeInsets.all(10.0),
               height: screenHeight * 0.6,
               width: screenWidth * 0.9,
@@ -81,9 +77,14 @@ class _MedicationModuleView extends StatelessWidget {
       children: [
         // Header with title and refresh button
         MyAppHeader(
-          title: 'My Medications',
+          title: 'Todays Medications',
           actionIcon: Icons.refresh,
-          onActionPressed: viewModel.loadMedications,
+          onActionPressed: () async {
+            // First load all medications
+            await viewModel.loadMedications();
+            // Then filter for today's medications
+            await viewModel.fetchTodaysMedications();
+          },
           actionTooltip: 'Refresh Medications',
         ),
 
@@ -96,10 +97,10 @@ class _MedicationModuleView extends StatelessWidget {
                       color: AppColors.getItGreen,
                     ),
                   )
-                  : viewModel.medications.isEmpty
+                  : viewModel.todaysMedications.isEmpty
                   ? Center(
                     child: Text(
-                      "No medications added yet",
+                      "No medications for today",
                       style: TextStyle(
                         fontSize: 16,
                         fontStyle: FontStyle.italic,
@@ -109,7 +110,6 @@ class _MedicationModuleView extends StatelessWidget {
                   )
                   : _buildMedicationList(viewModel),
         ),
-
         // Add button (visible only when search panel is hidden)
         if (!viewModel.showSearchPanel)
           MyConfirmationButton(
@@ -127,10 +127,10 @@ class _MedicationModuleView extends StatelessWidget {
   /// Builds the medication list
   Widget _buildMedicationList(MedicationManagementViewModel viewModel) {
     return ListView.builder(
-      itemCount: viewModel.medications.length,
+      itemCount: viewModel.todaysMedications.length,
       padding: const EdgeInsets.all(8.0),
       itemBuilder: (context, index) {
-        final medication = viewModel.medications[index];
+        final medication = viewModel.todaysMedications[index];
         return _buildMedicationItem(context, medication, viewModel);
       },
     );
@@ -169,18 +169,6 @@ class _MedicationModuleView extends StatelessWidget {
                       fontSize: 16,
                     ),
                   ),
-                ),
-
-                // Delete button
-                IconButton(
-                  icon: const Icon(Icons.delete, color: AppColors.urgentOrange),
-                  onPressed:
-                      () => _handleDeleteMedication(
-                        context,
-                        viewModel,
-                        medication,
-                      ),
-                  tooltip: 'Delete Medication',
                 ),
 
                 // Take button with confetti
@@ -376,44 +364,6 @@ class _MedicationModuleView extends StatelessWidget {
     );
   }
 
-  /// Handles deletion of a medication
-  Future<void> _handleDeleteMedication(
-    BuildContext context,
-    MedicationManagementViewModel viewModel,
-    MyMedication medication,
-  ) async {
-    // Capture scaffold messenger to avoid async gap issues
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
-
-    try {
-      // Delete the medication
-      final success = await viewModel.deleteMedication(medication.id!);
-
-      // Show appropriate message
-      if (success) {
-        scaffoldMessenger.showSnackBar(
-          const SnackBar(
-            content: Text('Medication deleted successfully'),
-            backgroundColor: AppColors.getItGreen,
-          ),
-        );
-      } else {
-        scaffoldMessenger.showSnackBar(
-          const SnackBar(
-            content: Text('Failed to delete medication'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
-      // Show error message
-      scaffoldMessenger.showSnackBar(
-        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-      );
-    }
-  }
-
-  /// Handles taking a medication
   void _handleTakeMedication(
     BuildContext context,
     MedicationManagementViewModel viewModel,

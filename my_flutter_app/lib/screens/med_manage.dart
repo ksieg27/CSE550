@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart'
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:medication_management_module/ui/Listing/view/medication_management_view.dart';
+import 'package:medication_management_module/ui/listing/view/list_todays_medication.dart';
 import 'package:my_flutter_app/screens/user_profile_screen.dart';
 import 'package:provider/provider.dart';
 import '/src/theme.dart';
@@ -51,7 +52,9 @@ class _MedManageState extends State<MedManage> {
                   tooltip: 'Logout',
                   onPressed: () {
                     FirebaseAuth.instance.signOut();
-                    context.go('/home'); // Navigate to the home page using GoRouter
+                    context.go(
+                      '/home',
+                    ); // Navigate to the home page using GoRouter
                   },
                 );
               }
@@ -108,6 +111,10 @@ class _MedManageState extends State<MedManage> {
 
               // Medication management module
               MedicationModuleWidget(
+                onMedicationCountChanged: _handleMedicationCountChanged,
+              ),
+
+              ListTodaysMedicationWidget(
                 onMedicationCountChanged: _handleMedicationCountChanged,
               ),
             ],

@@ -24,6 +24,9 @@ class MyMedication {
   // Hourly Frequency
   final int? hourlyFrequency;
 
+  int takenToday = 0;
+  DateTime lastTakenDate = DateTime.now();
+
   // Static counter for ID generation
   MyMedication({
     this.id,
@@ -41,6 +44,8 @@ class MyMedication {
     this.numberOfDoses,
     this.notes,
     this.endDate,
+    this.takenToday = 0,
+    DateTime? lastTakenDate,
   });
 
   Map<String, dynamic> toMap() => {
@@ -59,6 +64,8 @@ class MyMedication {
     'numberOfDoses': numberOfDoses,
     'notes': notes,
     'endDate': endDate,
+    'takenToday': takenToday,
+    'lastTakenDate': lastTakenDate.millisecondsSinceEpoch,
   };
 
   factory MyMedication.fromMap(Map<dynamic, dynamic> map) => MyMedication(
@@ -82,6 +89,11 @@ class MyMedication {
     numberOfDoses: map['numberOfDoses'] as int? ?? 1,
     notes: map['notes'] as String? ?? '',
     endDate: map['endDate'] as String? ?? '',
+    takenToday: map['takenToday'] as int? ?? 0,
+    lastTakenDate:
+        map['lastTakenDate'] != null
+            ? DateTime.fromMillisecondsSinceEpoch(map['lastTakenDate'] as int)
+            : DateTime.now(),
   );
 
   // Existing helper method

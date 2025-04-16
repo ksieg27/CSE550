@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:medication_management_module/ui/listing/view/list_todays_medication.dart';
 import 'package:my_flutter_app/screens/user_profile_screen.dart';
@@ -29,6 +30,7 @@ class _TodaysMedsState extends State<TodaysMeds> {
 
   @override
   Widget build(BuildContext context) {
+    final userName = FirebaseAuth.instance.currentUser?.displayName ?? 'User';
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false, // Remove the back arrow
@@ -72,7 +74,7 @@ class _TodaysMedsState extends State<TodaysMeds> {
                   children: [
                     Expanded(
                       child: Text(
-                        "Hi *USER NAME*, you have $_totalMedications medication(s) remaining today.",
+                        "Hi $userName, you have $_totalMedications medication(s) remaining today.",
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ),

@@ -19,7 +19,6 @@ class UserProfileScreen extends StatelessWidget {
         actions: [
           Consumer<ApplicationState>(
             builder: (context, appState, _) {
-              if (appState.loggedIn) {
                 return IconButton(
                   icon: const Icon(Icons.logout),
                   tooltip: 'Logout',
@@ -30,8 +29,6 @@ class UserProfileScreen extends StatelessWidget {
                     ); // Navigate to the home page using GoRouter
                   },
                 );
-              }
-              return const SizedBox.shrink(); // No button if not logged in
             },
           ),
         ],

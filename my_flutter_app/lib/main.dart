@@ -67,7 +67,7 @@ final _router = GoRouter(
   routes: [
     GoRoute(
       path: '/',
-      builder: (context, state) => const TodaysMeds(title: 'Medications'),
+      builder: (context, state) => const HomePage(),
       routes: [
         GoRoute(
           path: 'sign-in',

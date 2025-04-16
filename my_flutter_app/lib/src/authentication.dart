@@ -16,9 +16,9 @@ class AuthFunc extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (loggedIn) {
-      // Automatically navigate to the Medications page
+      // Automatically navigate to the Todays_Meds page
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        context.push('/screens/med_manage');
+        context.push('/screens/todays_meds');
       });
       return const SizedBox.shrink(); // Return an empty widget while navigating
     }

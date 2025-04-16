@@ -23,12 +23,9 @@ class HomePage extends StatelessWidget {
           Image.asset(
             height: 200,
             width: 200,
-            // scale: 3.0,
             'assets/medreminder.jpg',
           ),
           const SizedBox(height: 8),
-          //const IconAndDetail(Icons.calendar_today, 'October 30'),
-          //const IconAndDetail(Icons.location_city, 'Philadelphia'),
           Consumer<ApplicationState>(
             builder:
                 (context, appState, _) => AuthFunc(

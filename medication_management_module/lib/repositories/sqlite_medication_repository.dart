@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../models/medication.dart';
 import 'medication_repository.dart';
 import '../services/database_helper.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 /// Repository implementation for SQLite database storage of medications
 class SQLiteMedicationRepository implements MedicationRepository {
@@ -36,8 +37,25 @@ class SQLiteMedicationRepository implements MedicationRepository {
   @override
   Future<List<MyMedication>> fetchMedications() async {
     try {
+      final currentUserEmail = FirebaseAuth.instance.currentUser?.email;
+      if (currentUserEmail == null) {
+        if (kDebugMode) {
+          print('No current user email found, returning empty list');
+        }
+        return [];
+      }
+
+      if (kDebugMode) {
+        print('Fetching medications for user: $currentUserEmail');
+      }
+
+      // Fetch medications for the current user
       final Database db = await _databaseHelper.database;
-      final maps = await db.query('medications');
+      final maps = await db.query(
+        'medications',
+        where: 'profile = ?',
+        whereArgs: [currentUserEmail],
+      );
 
       if (kDebugMode) {
         print('Retrieved ${maps.length} medications from database');

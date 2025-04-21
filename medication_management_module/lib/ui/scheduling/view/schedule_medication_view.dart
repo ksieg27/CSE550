@@ -132,34 +132,46 @@ class _MedicationScheduleView extends StatelessWidget {
                             SizedBox(height: 16),
 
                             // Profile dropdown replacement
-                            DropdownButtonFormField<String>(
-                              decoration: InputDecoration(
-                                labelText: "Profile",
-                                border: OutlineInputBorder(),
-                                prefixIcon: Icon(Icons.person),
-                              ),
-                              value:
-                                  viewModel.profileController.text.isEmpty
-                                      ? 'Default'
-                                      : viewModel.profileController.text,
-                              items:
-                                  ['Default', 'John', 'Mary', 'Family'].map((
-                                    String profile,
-                                  ) {
-                                    return DropdownMenuItem<String>(
-                                      value: profile,
-                                      child: Text(profile),
-                                    );
-                                  }).toList(),
-                              onChanged: (newValue) {
-                                viewModel.profileController.text = newValue!;
-                              },
-                              validator:
-                                  (value) =>
-                                      value == null || value.isEmpty
-                                          ? 'Please select a profile'
-                                          : null,
-                            ),
+                            viewModel.isLoadingProfiles
+                                ? const Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      vertical: 8.0,
+                                    ),
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                )
+                                : DropdownButtonFormField<String>(
+                                  decoration: const InputDecoration(
+                                    labelText: "Profile",
+                                    border: OutlineInputBorder(),
+                                    prefixIcon: Icon(Icons.person),
+                                  ),
+                                  value:
+                                      viewModel.profileController.text.isEmpty
+                                          ? (viewModel.profiles.isNotEmpty
+                                              ? viewModel.profiles[0].email
+                                              : 'default@example.com')
+                                          : viewModel.profileController.text,
+                                  items:
+                                      viewModel.profiles.map((profile) {
+                                        return DropdownMenuItem<String>(
+                                          value: profile.email,
+                                          child: Text(profile.email),
+                                        );
+                                      }).toList(),
+                                  onChanged: (newValue) {
+                                    if (newValue != null) {
+                                      viewModel.profileController.text =
+                                          newValue;
+                                    }
+                                  },
+                                  validator:
+                                      (value) =>
+                                          value == null || value.isEmpty
+                                              ? 'Please select a profile'
+                                              : null,
+                                ),
                             SizedBox(height: 16),
 
                             // Quantity field - use your custom widget

@@ -4,6 +4,8 @@ import 'package:medication_management_module/repositories/sqlite_medication_repo
 import 'package:medication_management_module/services/notifications_service.dart';
 import '../../../models/medication.dart';
 import '../../../repositories/medication_repository.dart';
+import '../../../repositories/sqlite_profile_local_repository.dart';
+import '../../../models/profile_model.dart';
 
 // View model for the medication scheduling screen
 // Handles medication creation, schedule configuration, and form validation
@@ -13,6 +15,14 @@ class MedicationScheduleViewModel extends ChangeNotifier {
   final MedicationRepository repository;
   final NotificationService _notificationService = NotificationService();
   final bool isEditing;
+
+  //Profile data profile handling
+  final SQLiteProfileLocalRepository _profileRepository =
+      SQLiteProfileLocalRepository();
+  List<UserProfile> _profiles = [];
+  List<UserProfile> get profiles => _profiles;
+  bool _isLoadingProfiles = false;
+  bool get isLoadingProfiles => _isLoadingProfiles;
 
   // Form field controllers
   final TextEditingController profileController = TextEditingController();
@@ -45,6 +55,9 @@ class MedicationScheduleViewModel extends ChangeNotifier {
     quantityController.addListener(_recalculateRefillDate);
     numberOfDosesController.addListener(_recalculateRefillDate);
     numberOfDosesPerDayController.addListener(_recalculateRefillDate);
+
+    // Load profiles for the current user
+    loadProfiles();
 
     // If editing an existing medication, load its data
     if (isEditing && medicationData != null && medicationData!['id'] != null) {
@@ -102,6 +115,56 @@ class MedicationScheduleViewModel extends ChangeNotifier {
       if (kDebugMode) {
         print('Error loading medication for editing: $e');
       }
+    }
+  }
+
+  /// Loads user profiles from the database
+  Future<void> loadProfiles() async {
+    try {
+      _isLoadingProfiles = true;
+      notifyListeners();
+
+      _profiles = await _profileRepository.fetchProfiles();
+
+      if (kDebugMode) {
+        print('Loaded ${_profiles.length} profiles from database');
+        for (var profile in _profiles) {
+          print('Profile: ${profile.email}, First Name: ${profile.firstName}');
+        }
+      }
+
+      // If there are no profiles, add a default
+      if (_profiles.isEmpty) {
+        if (kDebugMode) {
+          print('No profiles found, using default');
+        }
+        _profiles = [
+          UserProfile(
+            email: 'default@example.com',
+            firstName: 'Default',
+            lastName: '',
+            doctorName: '',
+            doctorPhone: '',
+          ),
+        ];
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading profiles: $e');
+      }
+      // Set default profile as fallback
+      _profiles = [
+        UserProfile(
+          email: 'default@example.com',
+          firstName: 'Default',
+          lastName: '',
+          doctorName: '',
+          doctorPhone: '',
+        ),
+      ];
+    } finally {
+      _isLoadingProfiles = false;
+      notifyListeners();
     }
   }
 
@@ -235,10 +298,17 @@ class MedicationScheduleViewModel extends ChangeNotifier {
   MyMedication createMedication() {
     final medicationId = isEditing ? medicationData!['id'] : null;
 
+    // Profile field handling
+    final profileName =
+        profileController.text.isEmpty ? 'Default' : profileController.text;
+    final selectedProfile = _profiles.firstWhere(
+      (profile) => profile.email == profileName,
+      orElse: () => _profiles.first,
+    );
+
     return MyMedication(
       id: medicationId,
-      profile:
-          profileController.text.isEmpty ? 'Default' : profileController.text,
+      profile: selectedProfile.email,
       brandName: medicationData!['brand_name'] ?? 'Unknown Brand',
       genericName: medicationData!['generic_name'] ?? 'Unknown Generic',
       quantity: int.tryParse(quantityController.text) ?? 1,

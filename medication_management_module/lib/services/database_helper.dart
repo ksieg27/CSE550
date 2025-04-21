@@ -27,6 +27,16 @@ class DatabaseHelper {
   // Your existing _createDb method (should already include the new columns for fresh installs)
   Future<void> _createDb(Database db, int version) async {
     await db.execute('''
+    CREATE TABLE profiles(
+      email TEXT PRIMARY KEY,
+      firstName TEXT,
+      lastName TEXT,
+      doctorName TEXT,
+      doctorPhone TEXT
+    )
+  ''');
+
+    await db.execute('''
     CREATE TABLE medications(
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       profile TEXT,

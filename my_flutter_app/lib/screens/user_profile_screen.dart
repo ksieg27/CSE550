@@ -128,6 +128,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         await _profileRepository.addProfile(updatedProfile);
       }
 
+      User? firebaseUser = FirebaseAuth.instance.currentUser;
+      // Update Firebase user display name
+      if (firebaseUser != null) {
+        await firebaseUser.updateDisplayName(
+          '${_firstNameController.text} ${_lastNameController.text}',
+        );
+      }
+
       // Update the local _userProfile object with the new values
       setState(() {
         _userProfile = updatedProfile;
@@ -162,7 +170,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('User Profile'),
+        title: Text(
+          'User Profile',
+          style: Theme.of(context).textTheme.headlineMedium,
+        ),
         backgroundColor: AppColors.white,
         actions: [
           Consumer<ApplicationState>(
@@ -215,13 +226,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         _userProfile!.lastName.isNotEmpty &&
                         _userProfile!.doctorName.isNotEmpty) ...[
                       // Display existing profile information as read-only text
-                      const Text(
-                        'Profile Information',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
                       const SizedBox(height: 16),
                       _buildProfileInfoItem(
                         'First Name',
@@ -233,10 +237,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       ),
                       _buildProfileInfoItem('Doctor', _userProfile!.doctorName),
                       _buildPhoneNumberItem(
-                        'Doctor Phone',
+                        'Doctor\'s Phone #',
                         _userProfile!.doctorPhone,
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 8),
                       ElevatedButton(
                         onPressed: () {
                           // Allow editing
@@ -278,7 +282,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           ),
                         ),
                       ],
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 8),
                       TextFormField(
                         controller: _firstNameController,
                         decoration: const InputDecoration(
@@ -305,7 +309,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         keyboardType: TextInputType.phone, // Phone keyboard
                       ),
 
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 8),
                       ElevatedButton(
                         onPressed: _saveUserProfile,
                         child: Text(
@@ -315,7 +319,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         ),
                       ),
                     ],
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 8),
                     MedicationModuleWidget(),
                   ],
                 ),
@@ -336,7 +340,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             value,
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
           ),
-          const Divider(),
         ],
       ),
     );

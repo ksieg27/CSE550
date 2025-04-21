@@ -10,6 +10,7 @@ import 'home_page.dart'; // Import the home page
 import 'screens/todays_meds.dart'; // Import todays medications
 import 'screens/med_manage.dart'; // Import the medication management screen
 import 'src/theme.dart'; // Import themes, including colors, and widgets
+import 'screens/registration_screen.dart'; // Import the registration screen
 
 /// Application entry point
 void main() async {
@@ -83,6 +84,35 @@ final _router = GoRouter(
                   ),
                 );
               },
+              // Custom Registration button that takes the user to the registration screen
+              subtitleBuilder: (context, action) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Don\'t have an account? ',
+                        style: TextStyle(fontSize: 14),
+                      ),
+                      InkWell(
+                        onTap: () {
+                          context.push('/register');
+                        },
+                        child: const Text(
+                          'Register',
+                          style: TextStyle(
+                            color: Colors.blue,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              showAuthActionSwitch: false, // Hide the Default Register button
               actions: [
                 ForgotPasswordAction(((context, email) {
                   final uri = Uri(
@@ -156,5 +186,10 @@ final _router = GoRouter(
       builder: (context, state) => TodaysMeds(title: 'Todays Medications'),
     ),
     GoRoute(path: '/home', builder: (context, state) => const HomePage()),
+    GoRoute(
+      // Make sure this route exists
+      path: '/register', // or '/sign-up', whatever path you want to use
+      builder: (context, state) => const CustomRegistrationScreen(),
+    ),
   ],
 );

@@ -8,6 +8,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:my_flutter_app/home_page.dart';
 import 'package:my_flutter_app/app_state.dart';
+import 'package:medication_management_module/ui/searching/view/search_medication_view.dart';
+import 'package:medication_management_module/ui/searching/view_models/search_medication_view_model.dart';
+import 'package:mockito/mockito.dart';
 
 
 void main() {
@@ -25,5 +28,37 @@ void main() {
     expect(find.text('Welcome'), findsOneWidget);
   });
 
-  
+  testWidgets('Medication search autocomplete shows results', (WidgetTester tester) async {
+    // Mock search API
+    final mockResponse = [
+      {
+        'openfda': {
+          'brand_name': ['Advil'],
+          'generic_name': ['Ibuprofen']
+        }
+      }
+    ];
+
+    // Use fake API method so as not to hit API during testing
+    search_api.searchMedications = (String query) async {
+      return mockResponse;
+    };
+    
+        await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: MedicationSearchWidget(),
+        ),
+      ),
+    );
+
+    // Enter text
+    await tester.enterText((find.byType(TextField), 'Ad');
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pumpAndSettle();
+
+    // Expect to find mock results
+    expect(find.text('Advil'), findsOneWidget);
+    expect(find.text('Ibuprofen'), findsOneWidget);
+  });
 }

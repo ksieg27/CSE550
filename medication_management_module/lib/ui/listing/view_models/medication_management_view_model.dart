@@ -4,6 +4,7 @@ import 'package:medication_management_module/repositories/medication_repository.
 import 'package:medication_management_module/repositories/sqlite_medication_repository.dart';
 import '../../../services/notifications_service.dart';
 import 'package:vibration/vibration.dart';
+import 'package:confetti/confetti.dart';
 
 /// View model for the medication management screen
 ///
@@ -17,25 +18,37 @@ class MedicationManagementViewModel extends ChangeNotifier {
   final Function(int)? onMedicationCountChanged;
 
   // State variables
+  List<MyMedication> _todaysMedications = [];
   List<MyMedication> _medications = [];
   bool _isLoading = true;
   bool _showSearchPanel = false;
   bool _showSchedulePanel = false;
   Map<dynamic, dynamic>? _selectedMedication;
 
+  //Tracking todays doeses for listing medications
+
   // Getters for state
   List<MyMedication> get medications => _medications;
+  List<MyMedication> get todaysMedications => _todaysMedications;
   bool get isLoading => _isLoading;
   bool get showSearchPanel => _showSearchPanel;
   bool get showSchedulePanel => _showSchedulePanel;
   Map<dynamic, dynamic>? get selectedMedication => _selectedMedication;
 
+  final ConfettiController confettiController;
+
   /// Constructor
   MedicationManagementViewModel({
     MedicationRepository? repository,
     this.onMedicationCountChanged,
-  }) : repository = repository ?? SQLiteMedicationRepository() {
-    loadMedications();
+    ConfettiController? confettiController,
+  }) : repository = repository ?? SQLiteMedicationRepository(),
+       confettiController =
+           confettiController ??
+           ConfettiController(duration: const Duration(seconds: 2)) {
+    loadMedications().then((_) {
+      fetchTodaysMedications();
+    });
   }
 
   /// Loads medications from the repository
@@ -57,6 +70,60 @@ class MedicationManagementViewModel extends ChangeNotifier {
       _medications = loadedMedications;
       _isLoading = false;
 
+      final today = DateTime.now();
+      List<Future> updateOperations = [];
+
+      for (int i = 0; i < _medications.length; i++) {
+        final medicationDate = _medications[i].lastTakenDate;
+
+        // Compare date components instead of DateTime objects directly
+        if (medicationDate.year != today.year ||
+            medicationDate.month != today.month ||
+            medicationDate.day != today.day) {
+          // Reset the counters
+          _medications[i].takenToday = 0;
+          _medications[i].lastTakenDate = today;
+
+          // Create a new medication object with updated values
+          final updatedMedication = MyMedication(
+            id: _medications[i].id,
+            profile: _medications[i].profile,
+            brandName: _medications[i].brandName,
+            genericName: _medications[i].genericName,
+            quantity: _medications[i].quantity,
+            startDate: _medications[i].startDate,
+            refillDate: _medications[i].refillDate,
+            time: _medications[i].time,
+            dosage: _medications[i].dosage,
+            numberOfDosesPerDay: _medications[i].numberOfDosesPerDay,
+            frequencyTaken: _medications[i].frequencyTaken,
+            hourlyFrequency: _medications[i].hourlyFrequency,
+            numberOfDoses: _medications[i].numberOfDoses,
+            takenToday: 0, // Reset to 0
+            lastTakenDate: today, // Update to today's date
+          );
+
+          // Add update operation to list (don't await here to allow parallel updates)
+          updateOperations.add(repository.updateMedication(updatedMedication));
+
+          if (kDebugMode) {
+            print(
+              'Resetting medication: ${_medications[i].brandName} for new day',
+            );
+          }
+        }
+      }
+
+      // Wait for all update operations to complete
+      if (updateOperations.isNotEmpty) {
+        await Future.wait(updateOperations);
+        if (kDebugMode) {
+          print(
+            'Updated ${updateOperations.length} medications for the new day',
+          );
+        }
+      }
+
       // Use microtask to avoid setState during build
       Future.microtask(() {
         updateMedicationCount();
@@ -74,20 +141,38 @@ class MedicationManagementViewModel extends ChangeNotifier {
   /// Updates medication count in parent widgets
   void updateMedicationCount() {
     if (onMedicationCountChanged != null) {
-      onMedicationCountChanged!(_medications.length);
+      onMedicationCountChanged!(_todaysMedications.length);
     }
   }
 
-  /// Toggles search panel visibility
-  void toggleSearchPanel() {
-    _showSearchPanel = !_showSearchPanel;
-    notifyListeners();
-  }
+  // Need to have a next dose function that will check the time and see what time the next
+  // dose time is. It will also show if a medication was not taken and show a past due
+  Future<List<MyMedication>> fetchTodaysMedications() async {
+    try {
+      final todaysMeds =
+          _medications.where((medication) {
+            return medication.frequencyTaken != "As needed" &&
+                medication.quantity > 0 &&
+                medication.takenToday <
+                    (medication.numberOfDosesPerDay! *
+                        medication.numberOfDoses!);
+          }).toList();
 
-  /// Toggles schedule panel visibility
-  void toggleSchedulePanel() {
-    _showSchedulePanel = !_showSchedulePanel;
-    notifyListeners();
+      // Update the property
+      _todaysMedications = todaysMeds;
+
+      // Notify listeners about the change
+      notifyListeners();
+
+      // Return the filtered list
+      return todaysMeds;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error filtering today\'s medications: $e');
+      }
+      // Return empty list on error
+      return [];
+    }
   }
 
   /// Sets the selected medication for scheduling
@@ -119,13 +204,22 @@ class MedicationManagementViewModel extends ChangeNotifier {
         return;
       }
 
-      // Create updated medication object
+      // Calculate new values
+      final newQuantity = medication.quantity - (medication.numberOfDoses ?? 1);
+      final newTakenToday =
+          medication.takenToday + (medication.numberOfDoses ?? 1);
+
+      print(
+        'Medication taken: ${medication.brandName}, New quantity: $newQuantity, Times taken today: $newTakenToday',
+      );
+
+      // Create updated medication object with updated values
       final updatedMedication = MyMedication(
         id: medication.id,
         profile: medication.profile,
         brandName: medication.brandName,
         genericName: medication.genericName,
-        quantity: medication.quantity - 1, // Reduce by 1
+        quantity: newQuantity,
         startDate: medication.startDate,
         refillDate: medication.refillDate,
         time: medication.time,
@@ -134,6 +228,8 @@ class MedicationManagementViewModel extends ChangeNotifier {
         frequencyTaken: medication.frequencyTaken,
         hourlyFrequency: medication.hourlyFrequency,
         numberOfDoses: medication.numberOfDoses,
+        takenToday: newTakenToday,
+        lastTakenDate: DateTime.now(),
       );
 
       // Update database
@@ -145,15 +241,42 @@ class MedicationManagementViewModel extends ChangeNotifier {
         _medications[index] = updatedMedication;
       }
 
-      // Also update the parameter medication's quantity for UI feedback
-      // This is needed because the original object is referenced in the UI
-      medication.quantity = medication.quantity - 1;
+      medication.quantity = newQuantity;
+      medication.takenToday = newTakenToday;
+      medication.lastTakenDate = DateTime.now();
+
+      // Check if this medication should be removed from today's medications
+      bool shouldRemove = false;
+
+      // Remove if quantity is now zero
+      if (newQuantity <= 0) {
+        shouldRemove = true;
+      }
+      // Or if all daily doses have been taken
+      else if (medication.numberOfDosesPerDay != null &&
+          medication.numberOfDoses != null &&
+          newTakenToday >=
+              (medication.numberOfDosesPerDay! * medication.numberOfDoses!)) {
+        shouldRemove = true;
+      }
+
+      // Remove from today's list if needed
+      if (shouldRemove) {
+        _todaysMedications.removeWhere((med) => med.id == medication.id);
+        print('Removed medication ${medication.brandName} from today\'s list');
+      }
+
+      // Play confetti if medication was taken successfully
+      if (medication.quantity >= 0) {
+        playConfetti();
+      }
 
       // Check for low quantity and schedule refill reminder
       if (medication.quantity <= 5) {
         await _notificationService.scheduleRefillReminder(medication);
       }
 
+      // Notify UI to update
       notifyListeners();
     } catch (e) {
       if (kDebugMode) {
@@ -245,5 +368,24 @@ class MedicationManagementViewModel extends ChangeNotifier {
 
       return "$hour:00 $period";
     }
+  }
+
+  /// Confetti animation
+  void playConfetti() {
+    if (confettiController.state == ConfettiControllerState.stopped) {
+      confettiController.play();
+    }
+  }
+
+  /// Toggles search panel visibility
+  void toggleSearchPanel() {
+    _showSearchPanel = !_showSearchPanel;
+    notifyListeners();
+  }
+
+  /// Toggles schedule panel visibility
+  void toggleSchedulePanel() {
+    _showSchedulePanel = !_showSchedulePanel;
+    notifyListeners();
   }
 }

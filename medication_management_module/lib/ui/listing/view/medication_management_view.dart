@@ -29,44 +29,9 @@ class MedicationModuleWidget extends StatelessWidget {
   }
 }
 
-/// Internal implementation of the medication module view
-///
-/// Handles UI structure and interactions for displaying medications,
-/// searching for medications, and scheduling medications
-class _MedicationModuleView extends StatefulWidget {
+/// Widget that displays the medication management interface
+class _MedicationModuleView extends StatelessWidget {
   const _MedicationModuleView();
-
-  @override
-  State<_MedicationModuleView> createState() => _MedicationModuleViewState();
-}
-
-/// State for the medication module view
-class _MedicationModuleViewState extends State<_MedicationModuleView> {
-  /// Controller for the confetti animation
-  late final ConfettiController _confettiController;
-
-  @override
-  void initState() {
-    super.initState();
-    // Initialize confetti with 3-second duration
-    _confettiController = ConfettiController(
-      duration: const Duration(seconds: 3),
-    );
-  }
-
-  @override
-  void dispose() {
-    // Clean up resources to prevent memory leaks
-    _confettiController.dispose();
-    super.dispose();
-  }
-
-  /// Plays the confetti animation
-  void _playConfetti() {
-    if (_confettiController.state == ConfettiControllerState.stopped) {
-      _confettiController.play();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -241,7 +206,7 @@ class _MedicationModuleViewState extends State<_MedicationModuleView> {
 
                     // Confetti widget
                     ConfettiWidget(
-                      confettiController: _confettiController,
+                      confettiController: viewModel.confettiController,
                       minimumSize: const Size(3, 2),
                       maximumSize: const Size(5, 3),
                       blastDirection: pi / 2, // Straight down
@@ -322,72 +287,6 @@ class _MedicationModuleViewState extends State<_MedicationModuleView> {
         ),
       ],
     );
-  }
-
-  /// Handles deletion of a medication
-  Future<void> _handleDeleteMedication(
-    BuildContext context,
-    MedicationManagementViewModel viewModel,
-    MyMedication medication,
-  ) async {
-    // Capture scaffold messenger to avoid async gap issues
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
-
-    try {
-      // Delete the medication
-      final success = await viewModel.deleteMedication(medication.id!);
-
-      // Show appropriate message
-      if (success) {
-        scaffoldMessenger.showSnackBar(
-          const SnackBar(
-            content: Text('Medication deleted successfully'),
-            backgroundColor: AppColors.getItGreen,
-          ),
-        );
-      } else {
-        scaffoldMessenger.showSnackBar(
-          const SnackBar(
-            content: Text('Failed to delete medication'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
-      // Show error message
-      scaffoldMessenger.showSnackBar(
-        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-      );
-    }
-  }
-
-  /// Handles taking a medication
-  void _handleTakeMedication(
-    BuildContext context,
-    MedicationManagementViewModel viewModel,
-    MyMedication medication,
-  ) {
-    // Only take if there are doses left
-    if (medication.quantity > 0) {
-      viewModel.takeMedication(medication);
-      _playConfetti();
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Medication taken. ${medication.quantity - 1} doses remaining.',
-          ),
-          backgroundColor: AppColors.getItGreen,
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No doses remaining. Please refill your medication.'),
-          backgroundColor: AppColors.urgentOrange,
-        ),
-      );
-    }
   }
 
   /// Builds the animated search panel
@@ -475,5 +374,70 @@ class _MedicationModuleViewState extends State<_MedicationModuleView> {
         ),
       ),
     );
+  }
+
+  /// Handles deletion of a medication
+  Future<void> _handleDeleteMedication(
+    BuildContext context,
+    MedicationManagementViewModel viewModel,
+    MyMedication medication,
+  ) async {
+    // Capture scaffold messenger to avoid async gap issues
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+    try {
+      // Delete the medication
+      final success = await viewModel.deleteMedication(medication.id!);
+
+      // Show appropriate message
+      if (success) {
+        scaffoldMessenger.showSnackBar(
+          const SnackBar(
+            content: Text('Medication deleted successfully'),
+            backgroundColor: AppColors.getItGreen,
+          ),
+        );
+      } else {
+        scaffoldMessenger.showSnackBar(
+          const SnackBar(
+            content: Text('Failed to delete medication'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      // Show error message
+      scaffoldMessenger.showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+      );
+    }
+  }
+
+  /// Handles taking a medication
+  void _handleTakeMedication(
+    BuildContext context,
+    MedicationManagementViewModel viewModel,
+    MyMedication medication,
+  ) {
+    // Only take if there are doses left
+    if (medication.quantity > 0) {
+      viewModel.takeMedication(medication);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Medication taken. ${medication.quantity - 1} doses remaining.',
+          ),
+          backgroundColor: AppColors.getItGreen,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No doses remaining. Please refill your medication.'),
+          backgroundColor: AppColors.urgentOrange,
+        ),
+      );
+    }
   }
 }

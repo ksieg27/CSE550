@@ -1,16 +1,16 @@
 import 'package:firebase_ui_auth/firebase_ui_auth.dart'; // new
 import 'package:flutter/material.dart';
-import 'package:medication_management_module/services/notifications_service.dart';
-import 'package:medication_management_module/services/notifications_service.dart';
-import 'package:medication_management_module/ui/Listing/view/medication_management_view.dart';
-import 'package:my_flutter_app/screens/user_profile_screen.dart';
-import 'package:go_router/go_router.dart';               // new
+import 'package:medication_management_module/services/notifications_service.dart'; // Impoprting notifications service
+import 'package:my_flutter_app/screens/user_profile_screen.dart'; // Import the user profile Screen
+import 'package:go_router/go_router.dart'; // new
 import 'package:provider/provider.dart'; // Import provider for state management
 
 import 'app_state.dart'; // Import the app state management
 import 'home_page.dart'; // Import the home page
-import 'screens/med_manage.dart';
-import 'src/theme.dart';
+import 'screens/todays_meds.dart'; // Import todays medications
+import 'screens/med_manage.dart'; // Import the medication management screen
+import 'src/theme.dart'; // Import themes, including colors, and widgets
+import 'screens/registration_screen.dart'; // Import the registration screen
 
 /// Application entry point
 void main() async {
@@ -22,10 +22,12 @@ void main() async {
 
   // Run the app
   // runApp(const MyApp());
-  runApp(ChangeNotifierProvider(
-    create: (context) => ApplicationState(),
-    builder: ((context, child) => const MyApp()),
-  )); // Wraps the app with a provider for state management
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => ApplicationState(),
+      builder: ((context, child) => const MyApp()),
+    ),
+  ); // Wraps the app with a provider for state management
 }
 
 // /// Root widget that configures the application theme and initial route
@@ -56,7 +58,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       routerConfig: _router,
-//       home: const MyHomePage(title: 'Medication Tracker'),
+      //       home: const MyHomePage(title: 'Medication Tracker'),
     );
   }
 }
@@ -72,13 +74,50 @@ final _router = GoRouter(
           path: 'sign-in',
           builder: (context, state) {
             return SignInScreen(
+              headerBuilder: (context, constraints, header) {
+                return Container(
+                  height: 200,
+                  decoration: const BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage('assets/medreminder.jpg'),
+                    ),
+                  ),
+                );
+              },
+              // Custom Registration button that takes the user to the registration screen
+              subtitleBuilder: (context, action) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Don\'t have an account? ',
+                        style: TextStyle(fontSize: 14),
+                      ),
+                      InkWell(
+                        onTap: () {
+                          context.push('/register');
+                        },
+                        child: const Text(
+                          'Register',
+                          style: TextStyle(
+                            color: Colors.blue,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              showAuthActionSwitch: false, // Hide the Default Register button
               actions: [
                 ForgotPasswordAction(((context, email) {
                   final uri = Uri(
                     path: '/sign-in/forgot-password',
-                    queryParameters: <String, String?>{
-                      'email': email,
-                    },
+                    queryParameters: <String, String?>{'email': email},
                   );
                   context.push(uri.toString());
                 })),
@@ -86,7 +125,7 @@ final _router = GoRouter(
                   final user = switch (state) {
                     SignedIn state => state.user,
                     UserCreated state => state.credential.user,
-                    _ => null
+                    _ => null,
                   };
                   if (user == null) {
                     return;
@@ -94,13 +133,13 @@ final _router = GoRouter(
                   if (state is UserCreated) {
                     user.updateDisplayName(user.email!.split('@')[0]);
                   }
-                  if (!user.emailVerified) {
-                    user.sendEmailVerification();
-                    const snackBar = SnackBar(
-                        content: Text(
-                            'Please check your email to verify your email address'));
-                    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-                  }
+                  // if (!user.emailVerified) {
+                  //   user.sendEmailVerification();
+                  //   const snackBar = SnackBar(
+                  //       content: Text(
+                  //           'Please check your email to verify your email address'));
+                  //   ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                  // }
                   context.pushReplacement('/');
                 })),
               ],
@@ -140,7 +179,17 @@ final _router = GoRouter(
     ),
     GoRoute(
       path: '/screens/med_manage',
-      builder: (context, state) => MedManage(title: 'Medications')
+      builder: (context, state) => MedManage(title: 'Medications'),
+    ),
+    GoRoute(
+      path: '/screens/todays_meds',
+      builder: (context, state) => TodaysMeds(title: 'Todays Medications'),
+    ),
+    GoRoute(path: '/home', builder: (context, state) => const HomePage()),
+    GoRoute(
+      // Make sure this route exists
+      path: '/register', // or '/sign-up', whatever path you want to use
+      builder: (context, state) => const CustomRegistrationScreen(),
     ),
   ],
 );

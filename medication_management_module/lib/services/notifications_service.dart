@@ -133,67 +133,6 @@ class NotificationService {
     }
   }
 
-  // Future<void> scheduleMedicationReminder(MyMedication medication) async {
-  //   if (medication.id != null) {
-  //     await cancelNotification(medication.id!);
-  //   }
-
-  //   if (medication.frequencyTaken == "As needed") {
-  //     return;
-  //   }
-
-  //   final int hours = medication.time ~/ 60;
-  //   final int minutes = medication.time % 60;
-
-  //   final now = DateTime.now();
-  //   final scheduledDate = DateTime(
-  //     now.year,
-  //     now.month,
-  //     now.day,
-  //     hours,
-  //     minutes,
-  //   );
-
-  //   final tz.TZDateTime scheduledTZDate = tz.TZDateTime.from(
-  //     scheduledDate.isBefore(now)
-  //         ? scheduledDate.add(Duration(days: 1))
-  //         : scheduledDate,
-  //     tz.local,
-  //   );
-
-  //   await _flutterLocalNotificationsPlugin.zonedSchedule(
-  //     medication.id ?? 0,
-  //     'Time to take your medication',
-  //     'It\'s time to take ${medication.brandName} (${medication.genericName})',
-  //     scheduledTZDate,
-  //     NotificationDetails(
-  //       android: AndroidNotificationDetails(
-  //         'medication_channel',
-  //         'Medication Reminders',
-  //         channelDescription: 'Channel for medication reminders',
-  //         importance: Importance.max,
-  //         priority: Priority.high,
-  //         playSound: true,
-  //         enableVibration: true,
-  //       ),
-  //       iOS: DarwinNotificationDetails(
-  //         presentAlert: true,
-  //         presentBadge: true,
-  //         presentSound: true,
-  //       ),
-  //     ),
-  //     androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-  //     uiLocalNotificationDateInterpretation:
-  //         UILocalNotificationDateInterpretation.absoluteTime,
-  //     matchDateTimeComponents: DateTimeComponents.time,
-  //     payload: medication.id.toString(),
-  //   );
-
-  //   print(
-  //     'Scheduled notification for ${medication.brandName} at $hours:$minutes',
-  //   );
-  // }
-
   Future<void> scheduleRefillReminder(MyMedication medication) async {
     if (medication.id != null) {
       await cancelNotification(medication.id!);

@@ -15,40 +15,31 @@ class AuthFunc extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    if (loggedIn) {
+      // Automatically navigate to the Todays_Meds page
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.push('/screens/todays_meds');
+      });
+      return const SizedBox.shrink(); // Return an empty widget while navigating
+    }
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 24, bottom: 8),
-          child: StyledButton(
-            onPressed: () {
-              !loggedIn ? context.push('/sign-in') : signOut();
-            },
-            child: !loggedIn ? const Text('Sign-in') : const Text('Logout'),
-          ),
-        ),
-        Visibility(
-          visible: loggedIn,
-          child: Padding(
-            padding: const EdgeInsets.only(left: 24, bottom: 8),
-            child: StyledButton(
-              onPressed: () {
-                context.push('/screens/user_profile_screen');
-              },
-              child: const Text('Profile'),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: StyledButton(
+                onPressed: () {
+                  context.push('/sign-in');
+                },
+                child: const Text('Sign-in'),
+              ),
             ),
-          ),
-        ),
-        Visibility(
-          visible: loggedIn,
-          child: Padding(
-            padding: const EdgeInsets.only(left: 24, bottom: 8),
-            child: StyledButton(
-              onPressed: () {
-                context.push('/screens/med_manage');
-              },
-              child: const Text('Medications'),
-            ),
-          ),
+          ],
         ),
       ],
     );

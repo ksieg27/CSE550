@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'theme.dart';
 
 class Header extends StatelessWidget {
   const Header(this.heading, {super.key});
@@ -51,9 +52,50 @@ class StyledButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) => OutlinedButton(
     style: OutlinedButton.styleFrom(
-      side: const BorderSide(color: Colors.deepPurple),
+      side: const BorderSide(color: AppColors.deepBlues),
     ),
     onPressed: onPressed,
     child: child,
   );
+}
+
+class MyConfirmationButton extends StatelessWidget {
+  final String text;
+  final IconData? actionIcon;
+  final VoidCallback? actionOnPressed;
+  final String? actionTooltip;
+  final Color backgroundColor;
+  final Color textColor;
+
+  const MyConfirmationButton({
+    super.key,
+    required this.text,
+    this.actionIcon,
+    this.actionOnPressed,
+    this.actionTooltip,
+    this.backgroundColor = const Color(0xFF76C7C0), // AppColors.getItGreen
+    this.textColor = Colors.white,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return Container(
+      height: screenHeight * 0.07,
+      padding: const EdgeInsets.all(8.0),
+      child: ElevatedButton.icon(
+        onPressed: actionOnPressed,
+        icon: Icon(actionIcon),
+        label: Text(text, style: TextStyle(fontSize: screenHeight * 0.03)),
+        style: ElevatedButton.styleFrom(
+          foregroundColor: Colors.white,
+          backgroundColor: AppColors.getItGreen,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(9.0),
+          ),
+        ),
+      ),
+    );
+  }
 }

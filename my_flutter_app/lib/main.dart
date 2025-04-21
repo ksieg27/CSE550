@@ -1,15 +1,15 @@
 import 'package:firebase_ui_auth/firebase_ui_auth.dart'; // new
 import 'package:flutter/material.dart';
-import 'package:medication_management_module/services/notifications_service.dart';
-import 'package:my_flutter_app/screens/user_profile_screen.dart';
+import 'package:medication_management_module/services/notifications_service.dart'; // Impoprting notifications service
+import 'package:my_flutter_app/screens/user_profile_screen.dart'; // Import the user profile Screen
 import 'package:go_router/go_router.dart'; // new
 import 'package:provider/provider.dart'; // Import provider for state management
 
 import 'app_state.dart'; // Import the app state management
 import 'home_page.dart'; // Import the home page
 import 'screens/todays_meds.dart'; // Import todays medications
-import 'screens/med_manage.dart';
-import 'src/theme.dart';
+import 'screens/med_manage.dart'; // Import the medication management screen
+import 'src/theme.dart'; // Import themes, including colors, and widgets
 
 /// Application entry point
 void main() async {

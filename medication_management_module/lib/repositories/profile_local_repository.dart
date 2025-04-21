@@ -1,4 +1,4 @@
-import '../profile_model.dart';
+import '../models/profile_model.dart';
 
 abstract class ProfileLocalRepository {
   Future<void> addProfile(UserProfile profile);

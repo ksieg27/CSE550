@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
+import 'package:medication_management_module/repositories/sqlite_profile_local_repository.dart';
+import 'package:medication_management_module/repositories/profile_local_repository.dart';
+import 'package:medication_management_module/models/profile_model.dart';
 
 class CustomRegistrationScreen extends StatefulWidget {
   const CustomRegistrationScreen({super.key});
@@ -19,6 +21,10 @@ class _CustomRegistrationScreenState extends State<CustomRegistrationScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
+
+  // Profile Creation
+  final ProfileLocalRepository _profileRepository =
+      SQLiteProfileLocalRepository();
 
   @override
   void dispose() {
@@ -42,16 +48,13 @@ class _CustomRegistrationScreenState extends State<CustomRegistrationScreen> {
               password: _passwordController.text,
             );
 
+        final profile = UserProfile(
+          firstName: _firstNameController.text.trim(),
+          lastName: _lastNameController.text.trim(),
+          email: _emailController.text.trim(),
+        );
         // 2. Store additional user information in Firestore
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(userCredential.user!.uid)
-            .set({
-              'firstName': _firstNameController.text.trim(),
-              'lastName': _lastNameController.text.trim(),
-              'email': _emailController.text.trim(),
-              'createdAt': FieldValue.serverTimestamp(),
-            });
+        await _profileRepository.addProfile(profile);
 
         // 3. Update the display name (first + last name)
         await userCredential.user?.updateDisplayName(

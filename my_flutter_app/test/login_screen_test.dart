@@ -1,4 +1,3 @@
-/*
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
@@ -17,22 +16,29 @@ void main() {
 
       // Build the widget with mocked FirebaseAuth
       await tester.pumpWidget(MaterialApp(
-        home: SignInScreen(auth: auth), // Assume SignInScreen accepts an `auth` param
+        home: Scaffold(
+          body: EmailForm(
+            auth: auth,
+            action: AuthAction.signIn,
+          )
+        ), // Assume SignInScreen accepts an `auth` param
       ));
 
       // Enter email and password
-      final emailField = find.byKey(Key('email'));
-      final passwordField = find.byKey(Key('password'));
-      final loginButton = find.byKey(Key('signInButton'));
+      final emailField = find.byKey(Key('emailField'));
+      final passwordField = find.byKey(Key('passwordField'));
+      final signInButton = find.byKey(Key('signInButton'));
 
       await tester.enterText(emailField, 'username@dummyemail.com');
       await tester.enterText(passwordField, 'password123!');
-      await tester.tap(loginButton);
-      await tester.pump(); // Rebuild after interaction
+      expect(signInButton, findsOneWidget);
+
+       await tester.tap(signInButton);
+       await tester.pump(Duration(milliseconds: 500)); // Rebuild after interaction
 
       // Expect navigation or success message
-      expect(find.text('Welcome'), findsOneWidget); // Adjust depending on your success UI
+       expect(find.textContaining('First Name'), findsOneWidget); // Adjust depending on your success UI
+      
     });
   });
 }
-*/

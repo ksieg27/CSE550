@@ -1,6 +1,5 @@
 import 'package:http/http.dart' as http; // HTTP client for API requests
 import 'dart:convert'; // For JSON parsing
-import 'openfda_api_interface.dart';
 
 Future<List<dynamic>> searchMedications(String query) async {
   if (query.isEmpty) return [];

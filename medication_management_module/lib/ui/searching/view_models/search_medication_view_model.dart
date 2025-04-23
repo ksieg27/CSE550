@@ -70,7 +70,7 @@ class MedicationSearchViewModel extends ChangeNotifier {
     notifyListeners(); // Notify UI to show loading state
 
     try {
-      final results = await search.searchMedications(query);
+      final results = await search.searchMedication(query);
       _searchResults = results; // Update with API results
     } catch (e) {
       print('Error during medication search: $e');
